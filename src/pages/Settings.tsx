@@ -1,0 +1,185 @@
+import { useRef, useState } from 'react';
+import { Page, PageHeader, Section } from '../components/Layout';
+import { ConfirmSheet } from '../components/Sheet';
+import { clearAll, exportData, importData } from '../lib/backup';
+import { fmtDuration, parseDuration } from '../lib/format';
+import { updateSettings, useSettings } from '../settings';
+import { getThemePref, setThemePref, type ThemePref } from '../theme';
+import { Toggle } from './WorkoutEditor';
+import { IconX } from '../components/Icons';
+
+export default function Settings() {
+  const settings = useSettings();
+  const [theme, setTheme] = useState<ThemePref>(getThemePref());
+  const [preset, setPreset] = useState('');
+  const [msg, setMsg] = useState<string | null>(null);
+  const [confirmImport, setConfirmImport] = useState<File | null>(null);
+  const [confirmClear, setConfirmClear] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const addPreset = () => {
+    const sec = parseDuration(preset);
+    if (!sec) return;
+    updateSettings({ timerPresets: [...new Set([...settings.timerPresets, sec])].sort((a, b) => a - b) });
+    setPreset('');
+  };
+
+  return (
+    <>
+      <PageHeader title="Settings" back />
+      <Page className="pt-2">
+        <h1 className="text-[28px] font-bold tracking-tight px-1">Settings</h1>
+
+        <Section title="Appearance">
+          <div className="seg">
+            {(['system', 'light', 'dark'] as const).map((t) => (
+              <button
+                key={t}
+                aria-pressed={theme === t}
+                onClick={() => {
+                  setTheme(t);
+                  setThemePref(t);
+                }}
+                className="capitalize"
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+        </Section>
+
+        <Section title="Timer">
+          <div className="card p-4">
+            <div className="text-sm font-medium mb-2">Countdown presets</div>
+            <div className="flex flex-wrap gap-2">
+              {settings.timerPresets.map((p) => (
+                <span key={p} className="chip pr-1.5 gap-1 text-fg">
+                  {fmtDuration(p)}
+                  <button
+                    aria-label={`Remove ${fmtDuration(p)}`}
+                    className="h-6 w-6 grid place-items-center rounded-full text-muted active:bg-line/10"
+                    onClick={() => updateSettings({ timerPresets: settings.timerPresets.filter((x) => x !== p) })}
+                  >
+                    <IconX size={14} />
+                  </button>
+                </span>
+              ))}
+            </div>
+            <form
+              className="flex gap-2 mt-3"
+              onSubmit={(e) => {
+                e.preventDefault();
+                addPreset();
+              }}
+            >
+              <input
+                className="field flex-1"
+                inputMode="decimal"
+                placeholder="Add preset (m:ss or minutes)"
+                value={preset}
+                onChange={(e) => setPreset(e.target.value)}
+              />
+              <button className="btn-secondary" disabled={!parseDuration(preset)}>
+                Add
+              </button>
+            </form>
+          </div>
+          <div className="mt-3 flex flex-col gap-2">
+            <Toggle checked={settings.autoRest} onChange={(v) => updateSettings({ autoRest: v })}>
+              Auto-start rest timer
+              <span className="block text-xs text-muted font-normal">Starts the countdown when you check off a set</span>
+            </Toggle>
+            {settings.autoRest && (
+              <div className="flex flex-wrap gap-2 px-1">
+                {settings.timerPresets.map((p) => (
+                  <button key={p} className="chip" aria-pressed={settings.restSeconds === p} onClick={() => updateSettings({ restSeconds: p })}>
+                    {fmtDuration(p)}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </Section>
+
+        <Section title="Backup">
+          <div className="card p-4">
+            <p className="text-sm text-muted mb-3">
+              Your data lives only on this device. Export a backup now and then (e.g. to iCloud Drive) so you never lose it.
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                className="btn-primary"
+                onClick={async () => {
+                  await exportData();
+                  setMsg('Backup exported');
+                }}
+              >
+                Export
+              </button>
+              <button className="btn-secondary" onClick={() => fileRef.current?.click()}>
+                Import
+              </button>
+            </div>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="application/json,.json"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) setConfirmImport(f);
+                e.target.value = '';
+              }}
+            />
+            {msg && <p className="text-sm text-success font-medium mt-3">{msg}</p>}
+          </div>
+          <button className="btn-ghost w-full mt-2 text-danger" onClick={() => setConfirmClear(true)}>
+            Delete all data
+          </button>
+        </Section>
+
+        <Section title="Install on iPhone">
+          <div className="card p-4 text-[15px] space-y-1.5">
+            <p>1. Open this page in Safari.</p>
+            <p>
+              2. Tap the <b>Share</b> button.
+            </p>
+            <p>
+              3. Choose <b>Add to Home Screen</b>.
+            </p>
+            <p className="text-muted text-sm pt-1">It then opens full-screen like an app and works offline.</p>
+          </div>
+        </Section>
+      </Page>
+
+      <ConfirmSheet
+        open={!!confirmImport}
+        onClose={() => setConfirmImport(null)}
+        title="Import backup?"
+        message="This replaces all current data on this device with the backup."
+        confirmLabel="Replace & import"
+        danger
+        onConfirm={async () => {
+          try {
+            await importData(confirmImport!);
+            setMsg('Backup imported');
+          } catch (err) {
+            setMsg(`Import failed: ${(err as Error).message}`);
+          }
+        }}
+      />
+      <ConfirmSheet
+        open={confirmClear}
+        onClose={() => setConfirmClear(false)}
+        title="Delete all data?"
+        message="All exercises, workouts and templates will be removed from this device. Export a backup first if you want to keep them."
+        confirmLabel="Delete everything"
+        danger
+        onConfirm={async () => {
+          await clearAll();
+          setMsg('All data deleted');
+        }}
+      />
+    </>
+  );
+}
