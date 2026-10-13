@@ -4,8 +4,8 @@ import { fmtNum, parseNum } from '../lib/format';
 type Base = Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange'>;
 
 const cellCls =
-  'w-full h-10 rounded-lg bg-surface2 text-center font-semibold tabular-nums outline-none ' +
-  'focus:ring-2 focus:ring-accent/60 placeholder:text-muted/50 placeholder:font-normal';
+  'w-full h-10 bg-transparent border border-line/30 text-center font-mono font-medium tabular-nums outline-none ' +
+  'focus:border-line focus:bg-surface2 placeholder:text-muted/60 placeholder:font-normal';
 
 /** Numeric cell that keeps its own text so partial input like "62." works. */
 export function NumField({
@@ -164,7 +164,7 @@ export function AutoTextarea({
     const el = ref.current;
     if (!el) return;
     el.style.height = 'auto';
-    el.style.height = `${el.scrollHeight}px`;
+    el.style.height = `${el.scrollHeight + el.offsetHeight - el.clientHeight}px`; // include borders
   }, [t.text]);
   return (
     <textarea
@@ -179,7 +179,7 @@ export function AutoTextarea({
         t.setText(e.target.value);
         onChange(e.target.value);
       }}
-      className={`w-full resize-none rounded-xl bg-surface2 px-3 py-2 text-[15px] outline-none focus:ring-2 focus:ring-accent/50 placeholder:text-muted/70 ${className}`}
+      className={`w-full resize-none overflow-hidden bg-transparent border border-line/30 px-3 py-2 text-[15px] outline-none focus:border-line placeholder:text-muted ${className}`}
     />
   );
 }

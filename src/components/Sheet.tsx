@@ -26,18 +26,21 @@ export function Sheet({ open, onClose, title, children, tall }: Props) {
   if (!open) return null;
   return createPortal(
     <div className="fixed inset-0 z-50 flex flex-col justify-end">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] animate-fade" onClick={onClose} />
+      <div className="absolute inset-0 bg-[rgb(20_4_8/0.55)] animate-fade" onClick={onClose} />
       <div
         role="dialog"
         aria-modal="true"
-        className={`relative animate-sheet mx-auto w-full max-w-lg rounded-t-3xl bg-surface pb-safe shadow-2xl flex flex-col ${
-          tall ? 'h-[88dvh]' : 'max-h-[88dvh]'
+        style={{ paddingBottom: 'var(--frame-bottom)' }}
+        className={`relative animate-sheet mx-auto w-full max-w-lg bg-bg border-t-2 border-line flex flex-col ${
+          tall ? 'h-[86dvh]' : 'max-h-[86dvh]'
         }`}
       >
-        <div className="flex justify-center pt-2.5 pb-1">
-          <div className="h-1.5 w-10 rounded-full bg-line/15" />
+        <div className="flex items-start justify-between gap-3 px-5 pt-4 pb-3">
+          <div className="font-display font-extrabold uppercase text-[34px] leading-[0.9] min-w-0">{title}</div>
+          <button onClick={onClose} className="label pt-1.5 shrink-0" aria-label="Close">
+            Close ✕
+          </button>
         </div>
-        {title && <div className="px-5 pt-1 pb-3 text-lg font-semibold">{title}</div>}
         <div className="flex-1 overflow-y-auto px-5 pb-5 min-h-0">{children}</div>
       </div>
     </div>,
@@ -55,13 +58,13 @@ interface ConfirmProps {
   onClose: () => void;
 }
 
-export function ConfirmSheet({ open, title, message, confirmLabel, danger, onConfirm, onClose }: ConfirmProps) {
+export function ConfirmSheet({ open, title, message, confirmLabel, onConfirm, onClose }: ConfirmProps) {
   return (
     <Sheet open={open} onClose={onClose} title={title}>
-      {message && <p className="text-muted mb-5">{message}</p>}
+      {message && <p className="text-[15px] mb-6 max-w-[34ch]">{message}</p>}
       <div className="flex flex-col gap-2">
         <button
-          className={danger ? 'btn-danger w-full' : 'btn-primary w-full'}
+          className="btn-primary w-full"
           onClick={() => {
             onConfirm();
             onClose();

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { HashRouter, Route, Routes, useLocation } from 'react-router-dom';
-import { TabBar } from './components/Layout';
+import { Frame, TabBar } from './components/Layout';
 import { FloatingTimer } from './components/Timer/Timer';
 import Exercises, { ExerciseDetail } from './pages/Exercises';
 import History, { WorkoutDetail } from './pages/History';
@@ -12,6 +12,7 @@ import WorkoutEditor from './pages/WorkoutEditor';
 function Shell() {
   const { pathname } = useLocation();
   const showTabs = ['/', '/history', '/templates', '/exercises'].includes(pathname);
+  const onWorkoutScreen = pathname === '/workout' || /^\/history\/[^/]+\/edit$/.test(pathname);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -33,7 +34,8 @@ function Shell() {
         <Route path="*" element={<Home />} />
       </Routes>
       {showTabs && <TabBar />}
-      <FloatingTimer />
+      <FloatingTimer onWorkoutScreen={onWorkoutScreen} aboveTabs={showTabs} />
+      <Frame />
     </div>
   );
 }

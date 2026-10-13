@@ -4,8 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { EntryCard } from '../components/EntryCard';
 import { ExercisePicker } from '../components/ExercisePicker';
 import { AutoTextarea, TextField } from '../components/Fields';
-import { IconChevron, IconNote, IconPlay, IconPlus, IconTemplates, IconTrash } from '../components/Icons';
-import { Empty, Page, PageHeader } from '../components/Layout';
+import { Empty, idx, Page, PageHeader } from '../components/Layout';
 import { ConfirmSheet } from '../components/Sheet';
 import { addSet, moveItem, patchSet, removeSet } from '../db/entries';
 import { emptySet, getActiveWorkout, startWorkout } from '../db/queries';
@@ -28,42 +27,42 @@ export default function Templates() {
     <>
       <PageHeader
         title="Templates"
+        meta={[`${templates?.length ?? 0} saved routines`]}
         right={
-          <button className="icon-btn text-accent" aria-label="New template" onClick={create}>
-            <IconPlus />
+          <button className="btn-secondary h-9 px-3" onClick={create}>
+            + New
           </button>
         }
       />
       <Page>
         {templates && !templates.length && (
-          <Empty icon={<IconTemplates className="text-accent" />} title="No templates yet">
+          <Empty title="No templates yet.">
             Save a finished workout as a template, or{' '}
-            <button className="text-accent font-medium" onClick={create}>
-              create one from scratch
+            <button className="underline underline-offset-4" onClick={create}>
+              build one from scratch
             </button>
             .
           </Empty>
         )}
-        <div className="grid gap-3">
-          {templates?.map((t) => (
-            <Link key={t.id} to={`/templates/${t.id}`} className="card p-4 flex items-center gap-3 active:scale-[0.99] transition-transform">
-              <div className="flex-1 min-w-0">
-                <div className="font-semibold text-[17px] truncate">{t.name}</div>
-                <div className="text-sm text-muted mt-0.5 line-clamp-2">
-                  {t.entries.length} {t.entries.length === 1 ? 'exercise' : 'exercises'}
-                  {t.entries.length > 0 && ' · '}
-                  {t.entries.map((e) => exName.get(e.exerciseId)).filter(Boolean).join(', ')}
-                </div>
-                {t.notes && (
-                  <div className="flex items-center gap-1 text-[13px] text-muted/80 mt-1 truncate">
-                    <IconNote size={13} /> {t.notes}
+        <ul className="mt-4 border-t border-line">
+          {templates?.map((t, i) => (
+            <li key={t.id}>
+              <Link to={`/templates/${t.id}`} className="flex gap-3 py-3.5 border-b border-line/25 active:bg-surface2">
+                <span className="num text-[12px] pt-1">{idx(i)}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[19px] font-semibold leading-tight truncate">{t.name}</div>
+                  <div className="text-[13px] text-muted mt-0.5 line-clamp-2">
+                    {t.entries.length} {t.entries.length === 1 ? 'exercise' : 'exercises'}
+                    {t.entries.length > 0 && ' — '}
+                    {t.entries.map((e) => exName.get(e.exerciseId)).filter(Boolean).join(' / ')}
                   </div>
-                )}
-              </div>
-              <IconChevron size={18} className="text-muted shrink-0" />
-            </Link>
+                  {t.notes && <div className="font-serif italic text-[16px] mt-1 truncate">{t.notes}</div>}
+                </div>
+                <span className="font-mono pt-0.5">→</span>
+              </Link>
+            </li>
           ))}
-        </div>
+        </ul>
       </Page>
     </>
   );
@@ -86,44 +85,51 @@ export function TemplateEdit() {
   const [picker, setPicker] = useState(false);
   const [del, setDel] = useState(false);
 
-  if (t === null) return <Empty title="Template not found" />;
+  if (t === null) return <Empty title="Template not found." />;
   if (!t || !exercises) return null;
 
   const setEntries = (fn: (es: TemplateEntry[]) => TemplateEntry[]) => mutate(t.id, (x) => ({ entries: fn(x.entries) }));
 
   return (
     <>
-      <PageHeader title={t.name} back />
-      <Page className="pt-2">
-        <TextField
-          className="w-full bg-transparent text-[28px] font-bold tracking-tight outline-none px-1"
-          value={t.name}
-          onChange={(v) => mutate(t.id, () => ({ name: v }))}
-          aria-label="Template name"
-        />
-        <div className="mt-2 mb-4">
-          <AutoTextarea
-            value={t.notes ?? ''}
-            onChange={(v) => mutate(t.id, () => ({ notes: v }))}
-            placeholder="Template notes (goal, warm-up, focus…)"
+      <PageHeader
+        title={t.name || 'Template'}
+        back
+        hero={
+          <TextField
+            className="w-full bg-transparent font-display font-extrabold uppercase text-[52px] leading-[0.9] outline-none placeholder:text-muted"
+            value={t.name}
+            placeholder="Name"
+            onChange={(v) => mutate(t.id, () => ({ name: v }))}
+            aria-label="Template name"
           />
-        </div>
+        }
+        meta={[`Template — ${t.entries.length} ${t.entries.length === 1 ? 'exercise' : 'exercises'}`]}
+      />
+      <Page>
+        <AutoTextarea
+          value={t.notes ?? ''}
+          onChange={(v) => mutate(t.id, () => ({ notes: v }))}
+          placeholder="Template notes (goal, warm-up, focus…)"
+          className="font-serif italic text-[18px]"
+        />
 
         <button
-          className="btn-primary w-full h-12 mb-4"
+          className="w-full flex items-center justify-between h-14 px-4 my-5 bg-accent text-accent-fg font-mono text-[13px] uppercase tracking-[0.06em] disabled:opacity-35"
           disabled={!t.entries.length || !!active}
           onClick={async () => {
             await startWorkout(t);
             nav('/workout');
           }}
         >
-          <IconPlay size={18} /> {active ? 'A workout is already in progress' : 'Start workout'}
+          {active ? 'A workout is in progress' : 'Start this workout'} <span className="text-[18px]">→</span>
         </button>
 
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-4">
           {t.entries.map((e, ei) => (
             <EntryCard
               key={e.id}
+              index={ei}
               exercise={exMap.get(e.exerciseId)}
               notes={e.notes}
               sets={e.sets}
@@ -140,11 +146,11 @@ export function TemplateEdit() {
           ))}
         </div>
 
-        <button className="btn-secondary w-full mt-4 h-12 text-accent" onClick={() => setPicker(true)}>
-          <IconPlus size={20} /> Add exercise
+        <button className="btn-secondary w-full mt-4 h-14" onClick={() => setPicker(true)}>
+          + Add exercise
         </button>
-        <button className="btn-ghost w-full mt-2 text-danger" onClick={() => setDel(true)}>
-          <IconTrash size={18} /> Delete template
+        <button className="btn-ghost w-full mt-2" onClick={() => setDel(true)}>
+          ✕ Delete template
         </button>
       </Page>
 

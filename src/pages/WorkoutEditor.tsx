@@ -5,7 +5,6 @@ import { timer } from '../components/Timer/store';
 import { EntryCard } from '../components/EntryCard';
 import { ExercisePicker } from '../components/ExercisePicker';
 import { AutoTextarea, TextField } from '../components/Fields';
-import { IconPlus, IconTrash } from '../components/Icons';
 import { Page, PageHeader } from '../components/Layout';
 import { ConfirmSheet, Sheet } from '../components/Sheet';
 import { addSet, moveItem, patchSet, removeSet } from '../db/entries';
@@ -18,7 +17,7 @@ import {
   updateTemplateFromWorkout,
 } from '../db/queries';
 import { db, type Entry, type Workout } from '../db/schema';
-import { fmtDuration, fmtVolume } from '../lib/format';
+import { fmtDate, fmtDuration, fmtVolume } from '../lib/format';
 import { entryVolume } from '../lib/stats';
 import { getSettings } from '../settings';
 
@@ -64,40 +63,47 @@ export default function WorkoutEditor() {
   return (
     <>
       <PageHeader
-        title={editingFinished ? 'Edit workout' : <Elapsed since={workout.startedAt} />}
+        title={workout.name || 'Workout'}
+        barTitle={editingFinished ? workout.name : <Elapsed since={workout.startedAt} />}
         back={editingFinished ? true : '/'}
         right={
           editingFinished ? (
-            <button className="btn-primary h-9 px-4 text-sm mr-1" onClick={() => nav(-1)}>
+            <button className="btn-primary h-9 px-4" onClick={() => nav(-1)}>
               Done
             </button>
           ) : (
-            <button className="btn-primary h-9 px-4 text-sm mr-1" onClick={() => setFinishing(true)}>
+            <button className="btn-primary h-9 px-4" onClick={() => setFinishing(true)}>
               Finish
             </button>
           )
         }
-      />
-      <Page className="pt-2">
-        <TextField
-          className="w-full bg-transparent text-[28px] font-bold tracking-tight outline-none px-1"
-          value={workout.name}
-          onChange={(v) => mutate(id, () => ({ name: v }))}
-          aria-label="Workout name"
-        />
-        <div className="px-1 mb-4 mt-1">
-          <AutoTextarea
-            value={workout.notes ?? ''}
-            onChange={(v) => mutate(id, () => ({ notes: v }))}
-            placeholder="Workout notes"
-            className="bg-transparent px-0 py-1 text-muted focus:ring-0"
+        hero={
+          <TextField
+            className="w-full bg-transparent font-display font-extrabold uppercase text-[52px] leading-[0.9] outline-none placeholder:text-muted"
+            value={workout.name}
+            placeholder="Name"
+            onChange={(v) => mutate(id, () => ({ name: v }))}
+            aria-label="Workout name"
           />
-        </div>
+        }
+        meta={[
+          fmtDate(workout.startedAt, { weekday: 'long', day: 'numeric', month: 'long' }),
+          editingFinished ? 'Editing' : <Elapsed since={workout.startedAt} />,
+        ]}
+      />
+      <Page>
+        <AutoTextarea
+          value={workout.notes ?? ''}
+          onChange={(v) => mutate(id, () => ({ notes: v }))}
+          placeholder="Workout notes"
+          className="mb-5 font-serif italic text-[18px]"
+        />
 
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-4">
           {workout.entries.map((e, ei) => (
             <EntryCard
               key={e.id}
+              index={ei}
               exercise={exMap.get(e.exerciseId)}
               notes={e.notes}
               sets={e.sets}
@@ -121,12 +127,12 @@ export default function WorkoutEditor() {
           ))}
         </div>
 
-        <button className="btn-secondary w-full mt-4 h-12 text-accent" onClick={() => setPicker(true)}>
-          <IconPlus size={20} /> Add exercise
+        <button className="btn-primary w-full mt-4 h-14" onClick={() => setPicker(true)}>
+          + Add exercise
         </button>
         {!editingFinished && (
-          <button className="btn-ghost w-full mt-2 text-danger" onClick={() => setDiscarding(true)}>
-            <IconTrash size={18} /> Discard workout
+          <button className="btn-ghost w-full mt-2" onClick={() => setDiscarding(true)}>
+            ✕ Discard workout
           </button>
         )}
       </Page>
@@ -178,7 +184,7 @@ function Elapsed({ since }: { since: number }) {
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
   }, []);
-  return <span className="tabular-nums text-muted">{fmtDuration((now - since) / 1000)}</span>;
+  return <span className="num">{fmtDuration((now - since) / 1000)}</span>;
 }
 
 function FinishSheet({
@@ -219,7 +225,7 @@ function FinishSheet({
         <Stat label="Volume" value={fmtVolume(volume)} />
       </div>
       {all.length > done && (
-        <p className="text-sm text-muted mb-4">
+        <p className="text-[14px] mb-4">
           {all.length - done} unchecked {all.length - done === 1 ? 'set' : 'sets'} will be removed.
         </p>
       )}
@@ -228,7 +234,7 @@ function FinishSheet({
         {templateName && (
           <Toggle checked={updateTemplate} onChange={setUpdateTemplate}>
             Update template “{templateName}”
-            <span className="block text-xs text-muted font-normal">Saves today's exercises, sets and notes to it</span>
+            <span className="block text-[13px] text-muted font-normal">Saves today's exercises, sets and notes to it</span>
           </Toggle>
         )}
         <Toggle checked={saveTemplate} onChange={setSaveTemplate}>
@@ -259,9 +265,9 @@ function FinishSheet({
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl bg-surface2 px-3 py-2.5">
-      <div className="text-[11px] uppercase tracking-wide text-muted font-semibold">{label}</div>
-      <div className="text-lg font-semibold tabular-nums">{value}</div>
+    <div className="border border-line px-3 py-2.5">
+      <div className="label text-[10px]">{label}</div>
+      <div className="font-display font-extrabold text-[34px] leading-none mt-1 tabular-nums">{value}</div>
     </div>
   );
 }
@@ -276,10 +282,10 @@ export function Toggle({
   children: React.ReactNode;
 }) {
   return (
-    <label className="flex items-center gap-3 rounded-xl bg-surface2 px-4 py-3 font-medium cursor-pointer">
+    <label className="flex items-center gap-3 border border-line/40 px-4 py-3 font-medium cursor-pointer">
       <span className="flex-1">{children}</span>
       <input type="checkbox" className="sr-only peer" checked={checked} onChange={(e) => onChange(e.target.checked)} />
-      <span className="relative h-7 w-12 shrink-0 rounded-full bg-line/20 transition-colors peer-checked:bg-success after:absolute after:top-0.5 after:left-0.5 after:h-6 after:w-6 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:after:translate-x-5" />
+      <span className="relative h-7 w-12 shrink-0 border border-line transition-colors peer-checked:bg-accent after:absolute after:top-[3px] after:left-[3px] after:h-[20px] after:w-[20px] after:bg-accent after:transition-transform peer-checked:after:translate-x-5 peer-checked:after:bg-accent-fg" />
     </label>
   );
 }

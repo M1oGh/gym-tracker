@@ -3,13 +3,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { createExercise } from '../db/queries';
 import { db, type Exercise, type ExerciseType } from '../db/schema';
 import { AutoTextarea } from './Fields';
-import { IconCheck, IconDumbbell, IconPlus, IconRun, IconSearch } from './Icons';
+import { IconCheck } from './Icons';
 import { Sheet } from './Sheet';
 
 export function TypeBadge({ type }: { type: ExerciseType }) {
   return (
-    <span className="inline-grid place-items-center h-9 w-9 shrink-0 rounded-xl bg-accent/10 text-accent">
-      {type === 'weight' ? <IconDumbbell size={18} /> : <IconRun size={18} />}
+    <span className="inline-grid place-items-center h-8 px-2 shrink-0 border border-line font-mono text-[10px] uppercase tracking-wide">
+      {type === 'weight' ? 'kg' : 'time'}
     </span>
   );
 }
@@ -65,39 +65,36 @@ export function ExercisePicker({
         />
       ) : (
         <div className="flex flex-col h-full">
-          <div className="relative">
-            <IconSearch size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
-            <input className="field pl-10" placeholder="Search" value={q} onChange={(e) => setQ(e.target.value)} />
-          </div>
-          <button className="btn-ghost justify-start mt-2 -ml-1" onClick={() => setCreating(true)}>
-            <IconPlus size={18} /> Create {q.trim() ? `“${q.trim()}”` : 'new exercise'}
+          <input className="field" placeholder="Search" value={q} onChange={(e) => setQ(e.target.value)} />
+          <button className="btn-secondary justify-start mt-2" onClick={() => setCreating(true)}>
+            + Create {q.trim() ? `“${q.trim()}”` : 'new exercise'}
           </button>
-          <ul className="mt-1 flex-1 divide-y divide-line/[0.06]">
+          <ul className="mt-3 flex-1 border-t border-line">
             {list.map((e) => {
               const on = selected.includes(e.id);
               return (
                 <li key={e.id}>
-                  <button className="w-full flex items-center gap-3 py-3 text-left" onClick={() => toggle(e.id)}>
-                    <TypeBadge type={e.type} />
-                    <span className="flex-1 font-medium">{e.name}</span>
+                  <button className="w-full flex items-center gap-3 py-3 text-left border-b border-line/25" onClick={() => toggle(e.id)}>
                     <span
-                      className={`h-6 w-6 rounded-full grid place-items-center border-2 transition-colors ${
-                        on ? 'bg-accent border-accent text-accent-fg' : 'border-line/20'
+                      className={`h-6 w-6 grid place-items-center border transition-colors ${
+                        on ? 'bg-accent border-accent text-accent-fg' : 'border-line'
                       }`}
                     >
                       {on && <IconCheck size={14} />}
                     </span>
+                    <span className="flex-1 text-[17px] font-medium">{e.name}</span>
+                    <TypeBadge type={e.type} />
                   </button>
                 </li>
               );
             })}
             {!list.length && (
-              <li className="py-10 text-center text-muted text-sm">
+              <li className="py-10 font-serif italic text-[22px]">
                 {exercises.length ? 'No matches' : 'No exercises yet — create your first one.'}
               </li>
             )}
           </ul>
-          <div className="sticky bottom-0 pt-3 bg-surface">
+          <div className="sticky bottom-0 pt-3 bg-bg">
             <button className="btn-primary w-full" disabled={!selected.length} onClick={done}>
               Add {selected.length || ''} {selected.length === 1 ? 'exercise' : 'exercises'}
             </button>
@@ -145,7 +142,7 @@ export function ExerciseForm({
             Time & distance
           </button>
         </div>
-        {initial && <p className="text-xs text-muted mt-1.5">Type can't be changed after the exercise is created.</p>}
+        {initial && <p className="text-[13px] text-muted mt-1.5">Type can't be changed after the exercise is created.</p>}
       </div>
       <div>
         <div className="label mb-1.5">Notes</div>

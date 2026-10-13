@@ -7,6 +7,7 @@ import { updateSettings, useSettings } from '../settings';
 import { getThemePref, setThemePref, type ThemePref } from '../theme';
 import { Toggle } from './WorkoutEditor';
 import { IconX } from '../components/Icons';
+import { lastBackupText } from '../components/BackupReminder';
 
 export default function Settings() {
   const settings = useSettings();
@@ -26,12 +27,11 @@ export default function Settings() {
 
   return (
     <>
-      <PageHeader title="Settings" back />
-      <Page className="pt-2">
-        <h1 className="text-[28px] font-bold tracking-tight px-1">Settings</h1>
+      <PageHeader title="Settings" back meta={['Preferences & data', <span className="num">v1.1</span>]} />
+      <Page>
 
         <Section title="Appearance">
-          <div className="seg">
+          <div className="seg mt-3">
             {(['system', 'light', 'dark'] as const).map((t) => (
               <button
                 key={t}
@@ -49,15 +49,15 @@ export default function Settings() {
         </Section>
 
         <Section title="Timer">
-          <div className="card p-4">
-            <div className="text-sm font-medium mb-2">Countdown presets</div>
+          <div className="mt-3">
+            <div className="text-[15px] font-medium mb-2">Countdown presets</div>
             <div className="flex flex-wrap gap-2">
               {settings.timerPresets.map((p) => (
-                <span key={p} className="chip pr-1.5 gap-1 text-fg">
+                <span key={p} className="chip pr-1 gap-1">
                   {fmtDuration(p)}
                   <button
                     aria-label={`Remove ${fmtDuration(p)}`}
-                    className="h-6 w-6 grid place-items-center rounded-full text-muted active:bg-line/10"
+                    className="h-6 w-6 grid place-items-center active:bg-surface2"
                     onClick={() => updateSettings({ timerPresets: settings.timerPresets.filter((x) => x !== p) })}
                   >
                     <IconX size={14} />
@@ -87,7 +87,7 @@ export default function Settings() {
           <div className="mt-3 flex flex-col gap-2">
             <Toggle checked={settings.autoRest} onChange={(v) => updateSettings({ autoRest: v })}>
               Auto-start rest timer
-              <span className="block text-xs text-muted font-normal">Starts the countdown when you check off a set</span>
+              <span className="block text-[13px] text-muted font-normal">Starts the countdown when you check off a set</span>
             </Toggle>
             {settings.autoRest && (
               <div className="flex flex-wrap gap-2 px-1">
@@ -102,16 +102,16 @@ export default function Settings() {
         </Section>
 
         <Section title="Backup">
-          <div className="card p-4">
-            <p className="text-sm text-muted mb-3">
+          <div className="mt-3">
+            <p className="label mb-1.5">{lastBackupText(settings.lastBackupAt)}</p>
+            <p className="text-[15px] mb-3">
               Your data lives only on this device. Export a backup now and then (e.g. to iCloud Drive) so you never lose it.
             </p>
             <div className="grid grid-cols-2 gap-2">
               <button
                 className="btn-primary"
                 onClick={async () => {
-                  await exportData();
-                  setMsg('Backup exported');
+                  if (await exportData()) setMsg('Backup exported');
                 }}
               >
                 Export
@@ -131,15 +131,15 @@ export default function Settings() {
                 e.target.value = '';
               }}
             />
-            {msg && <p className="text-sm text-success font-medium mt-3">{msg}</p>}
+            {msg && <p className="label mt-3">◆ {msg}</p>}
           </div>
-          <button className="btn-ghost w-full mt-2 text-danger" onClick={() => setConfirmClear(true)}>
+          <button className="btn-ghost w-full mt-2" onClick={() => setConfirmClear(true)}>
             Delete all data
           </button>
         </Section>
 
         <Section title="Install on iPhone">
-          <div className="card p-4 text-[15px] space-y-1.5">
+          <div className="mt-3 text-[15px] space-y-1.5">
             <p>1. Open this page in Safari.</p>
             <p>
               2. Tap the <b>Share</b> button.
@@ -147,7 +147,7 @@ export default function Settings() {
             <p>
               3. Choose <b>Add to Home Screen</b>.
             </p>
-            <p className="text-muted text-sm pt-1">It then opens full-screen like an app and works offline.</p>
+            <p className="font-serif italic text-[18px] pt-2">It then opens full-screen like an app and works offline.</p>
           </div>
         </Section>
       </Page>

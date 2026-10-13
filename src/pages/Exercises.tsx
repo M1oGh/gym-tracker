@@ -2,8 +2,8 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ExerciseForm, TypeBadge } from '../components/ExercisePicker';
-import { IconChevron, IconDumbbell, IconMore, IconNote, IconPlus, IconSearch, IconTrash, IconTrophy } from '../components/Icons';
-import { Empty, Page, PageHeader, Section } from '../components/Layout';
+import { IconMore } from '../components/Icons';
+import { Empty, idx, Page, PageHeader, Section } from '../components/Layout';
 import { ProgressChart, type Point } from '../components/ProgressChart';
 import { fmtSet } from '../components/SetTable';
 import { ConfirmSheet, Sheet } from '../components/Sheet';
@@ -24,43 +24,43 @@ export default function Exercises() {
     <>
       <PageHeader
         title="Exercises"
+        meta={[`${exercises?.length ?? 0} in your library`]}
         right={
-          <button className="icon-btn text-accent" aria-label="New exercise" onClick={() => setCreating(true)}>
-            <IconPlus />
+          <button className="btn-secondary h-9 px-3" onClick={() => setCreating(true)}>
+            + New
           </button>
         }
       />
       <Page>
         {!!exercises?.length && (
-          <div className="relative mb-4">
-            <IconSearch size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
-            <input className="field pl-10 bg-surface border border-line/[0.06]" placeholder="Search" value={q} onChange={(e) => setQ(e.target.value)} />
-          </div>
+          <input className="field mt-3 mb-2" placeholder="Search exercises" value={q} onChange={(e) => setQ(e.target.value)} />
         )}
         {exercises && !exercises.length && (
-          <Empty icon={<IconDumbbell className="text-accent" />} title="No exercises yet">
-            <button className="text-accent font-medium" onClick={() => setCreating(true)}>
-              Create your first exercise
+          <Empty title="No exercises yet.">
+            <button className="underline underline-offset-4" onClick={() => setCreating(true)}>
+              Create your first one
             </button>{' '}
             — or add them while logging a workout.
           </Empty>
         )}
         {!!list.length && (
-          <div className="card divide-y divide-line/[0.06]">
-            {list.map((e) => {
+          <ul className="border-t border-line">
+            {list.map((e, i) => {
               const l = last?.get(e.id);
               return (
-                <Link key={e.id} to={`/exercises/${e.id}`} className="flex items-center gap-3 px-4 py-3">
-                  <TypeBadge type={e.type} />
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium truncate">{e.name}</div>
-                    <div className="text-sm text-muted truncate">{l ? `Last: ${fmtSet(bestSet(l.sets))}` : 'Not logged yet'}</div>
-                  </div>
-                  <IconChevron size={18} className="text-muted" />
-                </Link>
+                <li key={e.id}>
+                  <Link to={`/exercises/${e.id}`} className="flex items-center gap-3 py-3 border-b border-line/25 active:bg-surface2">
+                    <span className="num text-[12px] w-5">{idx(i)}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[18px] font-semibold leading-tight truncate">{e.name}</div>
+                      <div className="num text-[12px] text-muted truncate mt-0.5">{l ? `Last ${fmtSet(bestSet(l.sets))}` : 'Not logged yet'}</div>
+                    </div>
+                    <TypeBadge type={e.type} />
+                  </Link>
+                </li>
               );
             })}
-          </div>
+          </ul>
         )}
       </Page>
       <Sheet open={creating} onClose={() => setCreating(false)} title="New exercise">
@@ -125,7 +125,7 @@ export function ExerciseDetail() {
     return hasDist ? timeMetrics : timeMetrics.slice(0, 1);
   }, [ex, history]);
 
-  if (ex === null) return <Empty title="Exercise not found" />;
+  if (ex === null) return <Empty title="Exercise not found." />;
   if (!ex || !history) return null;
 
   const metric = metrics.find((m) => m.key === metricKey) ?? metrics[0];
@@ -151,49 +151,36 @@ export function ExerciseDetail() {
         title={ex.name}
         back
         right={
-          <button className="icon-btn text-accent" aria-label="Actions" onClick={() => setMenu(true)}>
+          <button className="icon-btn" aria-label="Actions" onClick={() => setMenu(true)}>
             <IconMore />
           </button>
         }
+        meta={[
+          ex.type === 'weight' ? 'Weight & reps' : 'Time & distance',
+          <span className="num">
+            {history.length} {history.length === 1 ? 'session' : 'sessions'}
+          </span>,
+        ]}
       />
-      <Page className="pt-2">
-        <div className="flex items-center gap-3 px-1">
-          <TypeBadge type={ex.type} />
-          <h1 className="text-[28px] font-bold tracking-tight leading-tight">{ex.name}</h1>
-        </div>
-        {ex.notes && (
-          <p className="flex gap-1.5 text-[14px] text-muted mt-2 px-1 whitespace-pre-line">
-            <IconNote size={15} className="mt-0.5 shrink-0" />
-            {ex.notes}
-          </p>
-        )}
+      <Page>
+        {ex.notes && <p className="mt-3 font-serif italic text-[20px] leading-snug whitespace-pre-line">{ex.notes}</p>}
 
         {history.length === 0 ? (
-          <div className="card mt-5">
-            <Empty title="No sessions yet">Log this exercise in a workout to see progress here.</Empty>
-          </div>
+          <Empty title="No sessions yet.">Log this exercise in a workout to see your progress here.</Empty>
         ) : (
           <>
             {!!records.length && (
-              <div className={`grid gap-2 mt-5 ${['grid-cols-1', 'grid-cols-2', 'grid-cols-3'][records.length - 1]}`}>
-                {records.map((r) => (
-                  <div key={r.label} className="card px-3 py-3 min-w-0">
-                    <div className="flex items-center gap-1 text-[11px] uppercase tracking-wide text-muted font-semibold truncate">
-                      <IconTrophy size={13} className="text-accent shrink-0" /> {r.label}
-                    </div>
-                    <div className="text-lg font-semibold tabular-nums mt-0.5 truncate">{r.value}</div>
+              <div className={`grid border border-line mt-5 ${['grid-cols-1', 'grid-cols-2', 'grid-cols-3'][records.length - 1]}`}>
+                {records.map((r, i) => (
+                  <div key={r.label} className={`px-3 py-2.5 min-w-0 ${i ? 'border-l border-line' : ''}`}>
+                    <div className="label text-[10px] truncate">Best {r.label}</div>
+                    <div className="font-display font-extrabold text-[30px] leading-none mt-1 truncate">{r.value}</div>
                   </div>
                 ))}
               </div>
             )}
 
-            <div className="card p-4 mt-3">
-              <div className="flex items-baseline justify-between">
-                <h2 className="font-semibold">{metric.label}</h2>
-                <span className="text-sm text-muted">
-                  {history.length} {history.length === 1 ? 'session' : 'sessions'}
-                </span>
-              </div>
+            <Section title={metric.label} action={<span className="label">Progress</span>}>
               {metrics.length > 1 && (
                 <div className="seg mt-3">
                   {metrics.map((m) => (
@@ -206,34 +193,30 @@ export function ExerciseDetail() {
               <div className="mt-3">
                 <ProgressChart data={points} format={metric.fmt} />
               </div>
-              <div className="flex gap-2 justify-center mt-2">
+              <div className="flex gap-2 mt-3">
                 {ranges.map((r) => (
-                  <button key={r.key} className="chip" aria-pressed={r.key === range} onClick={() => setRange(r.key)}>
+                  <button key={r.key} className="chip flex-1 justify-center" aria-pressed={r.key === range} onClick={() => setRange(r.key)}>
                     {r.key}
                   </button>
                 ))}
               </div>
-            </div>
+            </Section>
 
-            <Section title="History">
-              <div className="grid gap-3">
+            <Section title="Sessions">
+              <ul>
                 {[...history].reverse().map(({ workout, entry }) => (
-                  <Link key={workout.id + entry.id} to={`/history/${workout.id}`} className="card p-4 block">
-                    <div className="flex justify-between gap-2 text-sm">
-                      <span className="font-semibold">{fmtDate(workout.startedAt)}</span>
-                      <span className="text-muted truncate">{workout.name}</span>
-                    </div>
-                    {entry.notes && <p className="text-[13px] text-muted mt-1 whitespace-pre-line">{entry.notes}</p>}
-                    <div className="flex flex-wrap gap-1.5 mt-2">
-                      {entry.sets.map((s, i) => (
-                        <span key={i} className="rounded-lg bg-surface2 px-2 py-1 text-[13px] tabular-nums">
-                          {fmtSet(s)}
-                        </span>
-                      ))}
-                    </div>
-                  </Link>
+                  <li key={workout.id + entry.id}>
+                    <Link to={`/history/${workout.id}`} className="block py-3 border-b border-line/25 active:bg-surface2">
+                      <div className="flex justify-between gap-3">
+                        <span className="num text-[12px]">{fmtDate(workout.startedAt, { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                        <span className="text-[13px] truncate">{workout.name}</span>
+                      </div>
+                      {entry.notes && <p className="font-serif italic text-[16px] mt-1 whitespace-pre-line">{entry.notes}</p>}
+                      <div className="num text-[14px] mt-1.5 leading-relaxed">{entry.sets.map(fmtSet).join('  /  ')}</div>
+                    </Link>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </Section>
           </>
         )}
@@ -248,16 +231,16 @@ export function ExerciseDetail() {
               setEditing(true);
             }}
           >
-            <IconNote size={18} /> Edit exercise
+            ✎ Edit exercise
           </button>
           <button
-            className="btn-danger justify-start"
+            className="btn-primary justify-start"
             onClick={() => {
               setMenu(false);
               setDel(true);
             }}
           >
-            <IconTrash size={18} /> Delete exercise
+            ✕ Delete exercise
           </button>
         </div>
       </Sheet>

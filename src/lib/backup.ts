@@ -1,6 +1,8 @@
 import { db } from '../db/schema';
+import { updateSettings } from '../settings';
 
-export async function exportData() {
+/** Returns true when the backup was shared or downloaded (false if cancelled). */
+export async function exportData(): Promise<boolean> {
   const data = {
     app: 'gym-tracker',
     version: 1,
@@ -17,9 +19,10 @@ export async function exportData() {
   if (navigator.canShare?.({ files: [file] })) {
     try {
       await navigator.share({ files: [file], title: 'Gym backup' });
-      return;
+      updateSettings({ lastBackupAt: Date.now() });
+      return true;
     } catch (e) {
-      if ((e as Error).name === 'AbortError') return;
+      if ((e as Error).name === 'AbortError') return false;
     }
   }
   const url = URL.createObjectURL(file);
@@ -30,6 +33,8 @@ export async function exportData() {
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+  updateSettings({ lastBackupAt: Date.now() });
+  return true;
 }
 
 export async function importData(file: File) {

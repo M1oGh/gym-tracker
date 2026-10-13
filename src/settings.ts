@@ -7,10 +7,14 @@ export interface AppSettings {
   autoRest: boolean;
   /** Default rest length used by auto-start. */
   restSeconds: number;
+  /** When a backup was last exported (0 = never). */
+  lastBackupAt: number;
+  /** Backup reminder is hidden until this time. */
+  backupSnoozedUntil: number;
 }
 
 const KEY = 'settings';
-const defaults: AppSettings = { timerPresets: [60, 90, 120, 180], autoRest: false, restSeconds: 90 };
+const defaults: AppSettings = { timerPresets: [60, 90, 120, 180], autoRest: false, restSeconds: 90, lastBackupAt: 0, backupSnoozedUntil: 0 };
 
 function load(): AppSettings {
   try {
