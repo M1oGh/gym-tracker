@@ -3,28 +3,30 @@ import { fmtNum, parseNum } from '../lib/format';
 
 type Base = Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange'>;
 
-const cellCls =
-  'w-full h-10 bg-transparent border border-line/30 text-center font-mono font-medium tabular-nums outline-none ' +
-  'focus:border-line focus:bg-surface2 placeholder:text-muted/60 placeholder:font-normal';
+const cellBase =
+  'w-full min-w-0 h-10 bg-transparent text-center font-mono font-medium tabular-nums outline-none ' +
+  'focus:bg-surface2 placeholder:text-muted/60 placeholder:font-normal';
+const cellCls = `${cellBase} border border-line/30 focus:border-line`;
 
 /** Numeric cell that keeps its own text so partial input like "62." works. */
 export function NumField({
   value,
   onChange,
   className = '',
+  bare,
   ...rest
-}: Base & { value: number | null; onChange: (v: number | null) => void }) {
-  const [text, setText] = useState(value == null ? '' : fmtNum(value, 2));
+}: Base & { value: number | null; onChange: (v: number | null) => void; bare?: boolean }) {
+  const [text, setText] = useState(value == null ? '' : fmtNum(value, 3));
   const focused = useRef(false);
 
   useEffect(() => {
-    if (!focused.current) setText(value == null ? '' : fmtNum(value, 2));
+    if (!focused.current) setText(value == null ? '' : fmtNum(value, 3));
   }, [value]);
 
   return (
     <input
       {...rest}
-      className={`${cellCls} ${className}`}
+      className={`${bare ? cellBase : cellCls} ${className}`}
       inputMode="decimal"
       value={text}
       onFocus={(e) => {
@@ -33,7 +35,7 @@ export function NumField({
       }}
       onBlur={() => {
         focused.current = false;
-        setText(value == null ? '' : fmtNum(value, 2));
+        setText(value == null ? '' : fmtNum(value, 3));
       }}
       onChange={(e) => {
         const t = e.target.value.replace(/[^\d.,]/g, '');
@@ -41,6 +43,35 @@ export function NumField({
         onChange(parseNum(t));
       }}
     />
+  );
+}
+
+/** Weight cell with − / + buttons that change the value by `step` (never below 0). */
+export function WeightStepper({
+  value,
+  onChange,
+  step,
+}: {
+  value: number | null;
+  onChange: (v: number | null) => void;
+  step: number;
+}) {
+  // Round to avoid float noise like 62.75000000001.
+  const bump = (dir: 1 | -1) => onChange(Math.max(0, Math.round(((value ?? 0) + dir * step) * 1000) / 1000));
+  const btn =
+    'w-7 shrink-0 grid place-items-center font-mono text-[17px] leading-none select-none ' +
+    'active:bg-accent active:text-accent-fg transition-colors disabled:opacity-30';
+
+  return (
+    <div className="flex h-10 min-w-0 border border-line/30 focus-within:border-line">
+      <button type="button" className={`${btn} border-r border-line/20`} aria-label={`Decrease by ${step} kg`} disabled={!value} onClick={() => bump(-1)}>
+        −
+      </button>
+      <NumField bare value={value} placeholder="0" onChange={onChange} />
+      <button type="button" className={`${btn} border-l border-line/20`} aria-label={`Increase by ${step} kg`} onClick={() => bump(1)}>
+        +
+      </button>
+    </div>
   );
 }
 

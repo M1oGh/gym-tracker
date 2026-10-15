@@ -1,11 +1,15 @@
+// Generates the app icons in public/.
+//   npm run icons                  -> from scripts/icon-source.jpg
+//   npm run icons -- my-image.png  -> from another square image (PNG/JPG/SVG, ideally 1024×1024)
 import sharp from 'sharp';
-import { readFileSync } from 'node:fs';
 
-const svg = readFileSync(new URL('../public/favicon.svg', import.meta.url));
-// Square (non-rounded) variant for iOS, which applies its own mask.
-const square = Buffer.from(svg.toString().replace('rx="112"', 'rx="0"'));
+const source = process.argv[2] ?? 'scripts/icon-source.jpg';
 
-await sharp(square).resize(180, 180).png().toFile('public/apple-touch-icon.png');
-await sharp(square).resize(192, 192).png().toFile('public/icon-192.png');
-await sharp(square).resize(512, 512).png().toFile('public/icon-512.png');
-console.log('icons written');
+// "cover" crops non-square images to a centred square; flatten removes transparency
+// (iOS shows transparent areas as black).
+const icon = (size) => sharp(source).resize(size, size, { fit: 'cover' }).flatten({ background: '#ffffff' }).png();
+
+await icon(180).toFile('public/apple-touch-icon.png');
+await icon(192).toFile('public/icon-192.png');
+await icon(512).toFile('public/icon-512.png');
+console.log(`icons written from ${source}`);

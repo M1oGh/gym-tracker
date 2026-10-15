@@ -1,6 +1,7 @@
 import { isWeightSet, type AnySet, type ExerciseType, type TimeSet, type WeightSet } from '../db/schema';
 import { fmtDuration, fmtNum } from '../lib/format';
-import { DurationField, NumField } from './Fields';
+import { useSettings } from '../settings';
+import { DurationField, NumField, WeightStepper } from './Fields';
 import { IconCheck } from './Icons';
 import { SwipeRow } from './SwipeRow';
 
@@ -32,12 +33,21 @@ interface Props {
 
 export function SetTable({ type, sets, mode, previous, onChange, onRemove, onAdd, onToggleDone }: Props) {
   const log = mode === 'log';
-  const cols = log ? 'grid-cols-[26px_1fr_1fr_1fr_44px]' : 'grid-cols-[26px_1fr_1fr]';
+  const { weightStep } = useSettings();
+  // The weight column is wider when it holds the − / + stepper.
+  const cols =
+    type === 'weight'
+      ? log
+        ? 'grid-cols-[22px_minmax(0,0.85fr)_minmax(0,2fr)_minmax(0,1fr)_40px]'
+        : 'grid-cols-[22px_minmax(0,2fr)_minmax(0,1fr)]'
+      : log
+        ? 'grid-cols-[22px_1fr_1fr_1fr_40px]'
+        : 'grid-cols-[22px_1fr_1fr]';
   const heads = type === 'weight' ? ['kg', 'Reps'] : ['Time', 'km'];
 
   return (
     <div>
-      <div className={`grid ${cols} gap-2 px-3 py-1.5 label text-[10px] text-muted`}>
+      <div className={`grid ${cols} gap-1.5 px-2.5 py-1.5 label text-[10px] text-muted`}>
         <div>Set</div>
         {log && <div className="text-center">Prev</div>}
         <div className="text-center">{heads[0]}</div>
@@ -47,7 +57,7 @@ export function SetTable({ type, sets, mode, previous, onChange, onRemove, onAdd
       {sets.map((s, i) => (
         <SwipeRow key={i} onDelete={() => onRemove(i)}>
           <div
-            className={`grid ${cols} gap-2 items-center px-3 py-1.5 border-t border-line/15 transition-colors ${
+            className={`grid ${cols} gap-1.5 items-center px-2.5 py-1.5 border-t border-line/15 transition-colors ${
               s.done ? 'bg-surface2' : ''
             }`}
           >
@@ -63,7 +73,7 @@ export function SetTable({ type, sets, mode, previous, onChange, onRemove, onAdd
             )}
             {isWeightSet(s) ? (
               <>
-                <NumField value={s.weight} placeholder="0" onChange={(v) => onChange(i, { weight: v })} />
+                <WeightStepper value={s.weight} step={weightStep} onChange={(v) => onChange(i, { weight: v })} />
                 <NumField value={s.reps} placeholder="0" onChange={(v) => onChange(i, { reps: v === null ? null : Math.round(v) })} />
               </>
             ) : (
@@ -76,7 +86,7 @@ export function SetTable({ type, sets, mode, previous, onChange, onRemove, onAdd
               <button
                 onClick={() => onToggleDone?.(i)}
                 aria-label={s.done ? 'Mark set not done' : 'Mark set done'}
-                className={`h-10 w-11 grid place-items-center border transition-colors active:scale-95 ${
+                className={`h-10 w-10 grid place-items-center border transition-colors active:scale-95 ${
                   s.done ? 'bg-accent border-accent text-accent-fg' : 'border-line/50 text-line/40'
                 }`}
               >

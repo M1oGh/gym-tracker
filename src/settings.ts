@@ -11,10 +11,12 @@ export interface AppSettings {
   lastBackupAt: number;
   /** Backup reminder is hidden until this time. */
   backupSnoozedUntil: number;
+  /** Amount (kg) the weight +/− buttons add or remove. */
+  weightStep: number;
 }
 
 const KEY = 'settings';
-const defaults: AppSettings = { timerPresets: [60, 90, 120, 180], autoRest: false, restSeconds: 90, lastBackupAt: 0, backupSnoozedUntil: 0 };
+const defaults: AppSettings = { timerPresets: [60, 90, 120, 180], autoRest: false, restSeconds: 90, lastBackupAt: 0, backupSnoozedUntil: 0, weightStep: 0.25 };
 
 function load(): AppSettings {
   try {

@@ -4,9 +4,9 @@ const mq = () => window.matchMedia('(prefers-color-scheme: dark)');
 
 export function getThemePref(): ThemePref {
   try {
-    return (localStorage.getItem('theme') as ThemePref) || 'system';
+    return (localStorage.getItem('theme') as ThemePref) || 'light';
   } catch {
-    return 'system';
+    return 'light';
   }
 }
 

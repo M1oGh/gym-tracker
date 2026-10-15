@@ -2,17 +2,20 @@ import { useRef, useState } from 'react';
 import { Page, PageHeader, Section } from '../components/Layout';
 import { ConfirmSheet } from '../components/Sheet';
 import { clearAll, exportData, importData } from '../lib/backup';
-import { fmtDuration, parseDuration } from '../lib/format';
+import { fmtDuration, parseDuration, parseNum } from '../lib/format';
 import { updateSettings, useSettings } from '../settings';
 import { getThemePref, setThemePref, type ThemePref } from '../theme';
 import { Toggle } from './WorkoutEditor';
 import { IconX } from '../components/Icons';
 import { lastBackupText } from '../components/BackupReminder';
 
+const WEIGHT_STEPS = [0.25, 0.5, 1, 1.25, 2.5, 5];
+
 export default function Settings() {
   const settings = useSettings();
   const [theme, setTheme] = useState<ThemePref>(getThemePref());
   const [preset, setPreset] = useState('');
+  const [step, setStep] = useState('');
   const [msg, setMsg] = useState<string | null>(null);
   const [confirmImport, setConfirmImport] = useState<File | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
@@ -32,7 +35,7 @@ export default function Settings() {
 
         <Section title="Appearance">
           <div className="seg mt-3">
-            {(['system', 'light', 'dark'] as const).map((t) => (
+            {(['light', 'dark', 'system'] as const).map((t) => (
               <button
                 key={t}
                 aria-pressed={theme === t}
@@ -45,6 +48,41 @@ export default function Settings() {
                 {t}
               </button>
             ))}
+          </div>
+        </Section>
+
+        <Section title="Weight buttons">
+          <div className="mt-3">
+            <div className="text-[15px] font-medium mb-2">Step for the − / + buttons</div>
+            <div className="flex flex-wrap gap-2">
+              {WEIGHT_STEPS.map((s) => (
+                <button key={s} className="chip" aria-pressed={settings.weightStep === s} onClick={() => updateSettings({ weightStep: s })}>
+                  {s} kg
+                </button>
+              ))}
+            </div>
+            <form
+              className="flex gap-2 mt-3"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const v = parseNum(step);
+                if (v && v > 0) {
+                  updateSettings({ weightStep: v });
+                  setStep('');
+                }
+              }}
+            >
+              <input
+                className="field flex-1"
+                inputMode="decimal"
+                placeholder={`Custom step (now ${settings.weightStep} kg)`}
+                value={step}
+                onChange={(e) => setStep(e.target.value)}
+              />
+              <button className="btn-secondary" disabled={!(parseNum(step) ?? 0)}>
+                Set
+              </button>
+            </form>
           </div>
         </Section>
 
