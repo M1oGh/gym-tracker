@@ -31,7 +31,7 @@ export function Sheet({ open, onClose, title, children, tall }: Props) {
         role="dialog"
         aria-modal="true"
         style={{ paddingBottom: 'var(--frame-bottom)' }}
-        className={`relative animate-sheet mx-auto w-full max-w-lg bg-bg border-t-2 border-line flex flex-col ${
+        className={`relative animate-sheet mx-auto w-full max-w-lg bg-bg glass border-t-2 border-line flex flex-col ${
           tall ? 'h-[86dvh]' : 'max-h-[86dvh]'
         }`}
       >

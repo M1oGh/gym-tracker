@@ -94,7 +94,7 @@ export function ExercisePicker({
               </li>
             )}
           </ul>
-          <div className="sticky bottom-0 pt-3 bg-bg">
+          <div className="sticky bottom-0 pt-3 bg-bg glass">
             <button className="btn-primary w-full" disabled={!selected.length} onClick={done}>
               Add {selected.length || ''} {selected.length === 1 ? 'exercise' : 'exercises'}
             </button>

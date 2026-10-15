@@ -50,6 +50,13 @@ export interface TemplateEntry {
   sets: AnySet[];
 }
 
+/** Small key/value store (e.g. the custom background image). */
+export interface KV {
+  key: string;
+  type?: string;
+  data: ArrayBuffer;
+}
+
 export interface Template {
   id: string;
   name: string;
@@ -63,6 +70,7 @@ class GymDB extends Dexie {
   exercises!: Table<Exercise, string>;
   workouts!: Table<Workout, string>;
   templates!: Table<Template, string>;
+  kv!: Table<KV, string>;
 
   constructor() {
     super('gym-tracker');
@@ -70,6 +78,12 @@ class GymDB extends Dexie {
       exercises: 'id, name, createdAt',
       workouts: 'id, startedAt, finishedAt',
       templates: 'id, name, updatedAt',
+    });
+    this.version(2).stores({
+      exercises: 'id, name, createdAt',
+      workouts: 'id, startedAt, finishedAt',
+      templates: 'id, name, updatedAt',
+      kv: 'key',
     });
   }
 }

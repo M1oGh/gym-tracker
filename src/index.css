@@ -212,3 +212,21 @@ input[type='number']::-webkit-outer-spin-button {
     animation: none;
   }
 }
+
+/*
+ * Custom background image (Settings → Background). These rules only apply while
+ * an image is set, so the default look is untouched. Content areas turn
+ * transparent so the image shows through; bars and sheets get frosted glass.
+ */
+[data-bg-image] body {
+  background: transparent;
+}
+[data-bg-image] .bg-bg,
+[data-bg-image] .bg-surface {
+  background-color: transparent;
+}
+[data-bg-image] .glass {
+  background-color: rgb(var(--bg) / 0.82);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+}

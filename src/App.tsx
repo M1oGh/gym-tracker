@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { HashRouter, Route, Routes, useLocation } from 'react-router-dom';
-import { Frame, TabBar } from './components/Layout';
+import { BackgroundLayer, Frame, TabBar } from './components/Layout';
 import { FloatingTimer } from './components/Timer/Timer';
 import Exercises, { ExerciseDetail } from './pages/Exercises';
 import History, { WorkoutDetail } from './pages/History';
@@ -20,6 +20,7 @@ function Shell() {
 
   return (
     <div className="mx-auto max-w-lg min-h-dvh">
+      <BackgroundLayer />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/workout" element={<WorkoutEditor />} />

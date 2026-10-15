@@ -2,6 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { registerSW } from 'virtual:pwa-register';
 import App from './App';
+import { initBackground } from './background';
 import { applyTheme, watchSystemTheme } from './theme';
 import '@fontsource/big-shoulders-display/latin-800';
 import '@fontsource/inter-tight/latin-400';
@@ -14,6 +15,7 @@ import './index.css';
 
 applyTheme();
 watchSystemTheme();
+void initBackground();
 registerSW({ immediate: true });
 
 // Ask the browser not to evict our IndexedDB data under storage pressure.

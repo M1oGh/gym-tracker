@@ -8,6 +8,8 @@ import { getThemePref, setThemePref, type ThemePref } from '../theme';
 import { Toggle } from './WorkoutEditor';
 import { IconX } from '../components/Icons';
 import { lastBackupText } from '../components/BackupReminder';
+import { BackgroundSettings } from '../components/BackgroundSettings';
+import { removeBackground } from '../background';
 
 const WEIGHT_STEPS = [0.25, 0.5, 1, 1.25, 2.5, 5];
 
@@ -50,6 +52,8 @@ export default function Settings() {
             ))}
           </div>
         </Section>
+
+        <BackgroundSettings />
 
         <Section title="Weight buttons">
           <div className="mt-3">
@@ -210,11 +214,12 @@ export default function Settings() {
         open={confirmClear}
         onClose={() => setConfirmClear(false)}
         title="Delete all data?"
-        message="All exercises, workouts and templates will be removed from this device. Export a backup first if you want to keep them."
+        message="All exercises, workouts, templates and the background image will be removed from this device. Export a backup first if you want to keep them."
         confirmLabel="Delete everything"
         danger
         onConfirm={async () => {
           await clearAll();
+          await removeBackground();
           setMsg('All data deleted');
         }}
       />

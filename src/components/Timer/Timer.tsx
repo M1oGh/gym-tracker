@@ -42,7 +42,7 @@ export function FloatingTimer({ onWorkoutScreen, aboveTabs }: { onWorkoutScreen:
           className={`fixed z-40 flex items-center gap-2 h-12 border animate-fade font-mono text-[15px] font-medium tabular-nums
             transition-colors active:translate-y-px
             ${label ? 'px-4' : 'w-12 justify-center'}
-            ${s.running || s.ringing ? 'bg-accent text-accent-fg border-accent' : 'bg-bg text-fg border-line'}
+            ${s.running || s.ringing ? 'bg-accent text-accent-fg border-accent' : 'bg-bg glass text-fg border-line'}
             ${s.ringing ? 'animate-blink' : ''}`}
         >
           <IconTimer size={19} />

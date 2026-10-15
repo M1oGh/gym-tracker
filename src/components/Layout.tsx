@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
+import { useBackground } from '../background';
 import { IconBack } from './Icons';
 
 /** Single line of display type scaled to exactly fill its container's width. */
@@ -71,7 +72,8 @@ export function PageHeader({ title, back, right, meta, hero, barTitle }: HeaderP
 
   return (
     <>
-      <header className="sticky top-0 z-20 bg-bg pt-frame">
+      {/* With a background image the bar is see-through at the top and only frosts once content scrolls under it. */}
+      <header className={`sticky top-0 z-20 bg-bg pt-frame ${compact ? 'glass' : ''}`}>
         <div className={`flex items-center h-12 px-2 gap-1 border-b transition-colors ${compact ? 'border-line' : 'border-transparent'}`}>
           {back ? (
             <button
@@ -128,7 +130,7 @@ const tabs = [
 
 export function TabBar() {
   return (
-    <nav className="fixed inset-x-0 z-30 bg-bg border-t border-line bottom-frame" style={{ height: 'var(--tabbar-h)' }}>
+    <nav className="fixed inset-x-0 z-30 bg-bg glass border-t border-line bottom-frame" style={{ height: 'var(--tabbar-h)' }}>
       <div className="mx-auto max-w-lg h-full grid grid-cols-4 px-[var(--frame-w)]">
         {tabs.map(({ to, label, end }) => (
           <NavLink
@@ -146,6 +148,17 @@ export function TabBar() {
         ))}
       </div>
     </nav>
+  );
+}
+
+/** The custom background image (Settings → Background), if one is set. */
+export function BackgroundLayer() {
+  const { url } = useBackground();
+  if (!url) return null;
+  return (
+    <div aria-hidden className="fixed inset-0 -z-10 pointer-events-none">
+      <img src={url} alt="" className="h-full w-full object-cover" style={{ opacity: 'var(--bg-opacity)' }} />
+    </div>
   );
 }
 

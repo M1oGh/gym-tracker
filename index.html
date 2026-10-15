@@ -18,6 +18,11 @@
           var t = localStorage.getItem('theme') || 'light';
           var dark = t === 'dark' || (t === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
           document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+          // Colours derived from a custom background image (see src/background.ts).
+          var bg = JSON.parse(localStorage.getItem('bgTokens') || 'null');
+          if (bg && bg.theme === document.documentElement.dataset.theme) {
+            for (var k in bg.vars) document.documentElement.style.setProperty(k, bg.vars[k]);
+          }
         } catch (e) {}
       })();
     </script>

@@ -13,10 +13,12 @@ export interface AppSettings {
   backupSnoozedUntil: number;
   /** Amount (kg) the weight +/− buttons add or remove. */
   weightStep: number;
+  /** Visibility of the custom background image (0–1). */
+  bgOpacity: number;
 }
 
 const KEY = 'settings';
-const defaults: AppSettings = { timerPresets: [60, 90, 120, 180], autoRest: false, restSeconds: 90, lastBackupAt: 0, backupSnoozedUntil: 0, weightStep: 0.25 };
+const defaults: AppSettings = { timerPresets: [60, 90, 120, 180], autoRest: false, restSeconds: 90, lastBackupAt: 0, backupSnoozedUntil: 0, weightStep: 0.25, bgOpacity: 0.25 };
 
 function load(): AppSettings {
   try {
@@ -41,6 +43,11 @@ export function updateSettings(patch: Partial<AppSettings>) {
     /* storage unavailable */
   }
   listeners.forEach((l) => l());
+}
+
+export function subscribeSettings(l: () => void) {
+  listeners.add(l);
+  return () => listeners.delete(l);
 }
 
 export function useSettings() {

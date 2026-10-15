@@ -18,7 +18,7 @@ function useThemeColors() {
   const [colors, setColors] = useState(readColors);
   useEffect(() => {
     const obs = new MutationObserver(() => setColors(readColors()));
-    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'style'] });
     return () => obs.disconnect();
   }, []);
   return colors;
@@ -64,7 +64,7 @@ export function ProgressChart({ data, format }: { data: Point[]; format: (v: num
               if (!active || !payload?.length) return null;
               const p = payload[0].payload as Point;
               return (
-                <div className="bg-bg border border-line px-3 py-2">
+                <div className="bg-bg glass border border-line px-3 py-2">
                   <div className="num text-[11px]">{fmtDate(p.t, { day: 'numeric', month: 'short', year: 'numeric' })}</div>
                   <div className="font-display font-extrabold text-[24px] leading-none mt-0.5">{format(p.v)}</div>
                 </div>
