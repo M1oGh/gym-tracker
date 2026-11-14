@@ -37,7 +37,7 @@ export default function Settings() {
 
         <Section title="Appearance">
           <div className="seg mt-3">
-            {(['light', 'dark', 'system'] as const).map((t) => (
+            {(['light', 'sepia', 'dark', 'system'] as const).map((t) => (
               <button
                 key={t}
                 aria-pressed={theme === t}

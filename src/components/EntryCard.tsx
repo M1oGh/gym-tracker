@@ -5,6 +5,7 @@ import { AutoTextarea } from './Fields';
 import { IconMore, IconNote } from './Icons';
 import { idx } from './Layout';
 import { SetTable } from './SetTable';
+import type { DragHandleProps } from './SortableList';
 import { Sheet } from './Sheet';
 
 interface Props {
@@ -23,6 +24,9 @@ interface Props {
   onToggleDone?: (i: number) => void;
   onMove: (dir: -1 | 1) => void;
   onRemove: () => void;
+  /** Long-press handle for drag-to-reorder (from SortableList). */
+  handle?: DragHandleProps;
+  dragging?: boolean;
 }
 
 export function EntryCard(p: Props) {
@@ -37,10 +41,13 @@ export function EntryCard(p: Props) {
   const allDone = p.mode === 'log' && p.sets.length > 0 && doneCount === p.sets.length;
 
   return (
-    <div className="border border-line">
-      <div className={`flex items-center gap-2 pl-3 pr-1 h-12 border-b border-line ${allDone ? 'bg-accent text-accent-fg' : ''}`}>
+    <div className={`border border-line ${p.dragging ? 'bg-bg glass outline outline-2 outline-accent' : ''}`}>
+      <div
+        {...p.handle}
+        className={`flex items-center gap-2 pl-3 pr-1 h-12 border-b border-line ${allDone ? 'bg-accent text-accent-fg' : ''}`}
+      >
         <span className="num text-[12px] opacity-70">{idx(p.index)}</span>
-        <Link to={`/exercises/${ex.id}`} className="flex-1 min-w-0 truncate text-[17px] font-semibold">
+        <Link to={`/exercises/${ex.id}`} draggable={false} className="flex-1 min-w-0 truncate text-[17px] font-semibold">
           {ex.name}
         </Link>
         {p.mode === 'log' && p.sets.length > 0 && (

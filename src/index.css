@@ -22,6 +22,22 @@
   color-scheme: light;
 }
 
+/* Sepia: warm paper tones, softer contrast and less blue light — easy on the eyes. */
+[data-theme='sepia'] {
+  --bg: 242 233 216;
+  --frame: 156 72 46;
+  --surface: 242 233 216;
+  --surface2: 231 218 194;
+  --line: 104 66 48;
+  --fg: 104 66 48;
+  --muted: 146 110 88;
+  --accent: 156 72 46;
+  --accent-fg: 250 243 230;
+  --success: 156 72 46;
+  --danger: 156 72 46;
+  color-scheme: light;
+}
+
 [data-theme='dark'] {
   --bg: 14 12 12;
   --frame: 210 23 47;

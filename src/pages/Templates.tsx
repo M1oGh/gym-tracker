@@ -1,13 +1,13 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { EntryCard } from '../components/EntryCard';
 import { ExercisePicker } from '../components/ExercisePicker';
 import { AutoTextarea, TextField } from '../components/Fields';
+import { IconNote, IconX } from '../components/Icons';
 import { Empty, idx, Page, PageHeader } from '../components/Layout';
 import { ConfirmSheet } from '../components/Sheet';
-import { addSet, moveItem, patchSet, removeSet } from '../db/entries';
-import { emptySet, getActiveWorkout, startWorkout } from '../db/queries';
+import { reorder, SortableList, type DragHandleProps } from '../components/SortableList';
+import { getActiveWorkout, startWorkout } from '../db/queries';
 import { db, uid, type Template, type TemplateEntry } from '../db/schema';
 
 export default function Templates() {
@@ -125,26 +125,30 @@ export function TemplateEdit() {
           {active ? 'A workout is in progress' : 'Start this workout'} <span className="text-[18px]">→</span>
         </button>
 
-        <div className="flex flex-col gap-4">
-          {t.entries.map((e, ei) => (
-            <EntryCard
-              key={e.id}
-              index={ei}
-              exercise={exMap.get(e.exerciseId)}
-              notes={e.notes}
-              sets={e.sets}
-              mode="plan"
-              isFirst={ei === 0}
-              isLast={ei === t.entries.length - 1}
-              onNotes={(notes) => setEntries((es) => es.map((x, i) => (i === ei ? { ...x, notes } : x)))}
-              onSetChange={(si, patch) => setEntries((es) => patchSet(es, ei, si, patch))}
-              onSetRemove={(si) => setEntries((es) => removeSet(es, ei, si))}
-              onSetAdd={() => setEntries((es) => addSet(es, ei, emptySet(exMap.get(e.exerciseId)?.type ?? 'weight')))}
-              onMove={(dir) => setEntries((es) => moveItem(es, ei, dir))}
-              onRemove={() => setEntries((es) => es.filter((_, i) => i !== ei))}
-            />
-          ))}
+        <div className="border-t border-line">
+          <SortableList
+            items={t.entries}
+            keyOf={(e) => e.id}
+            gap={0}
+            onReorder={(from, to) => setEntries((es) => reorder(es, from, to))}
+          >
+            {(e, ei, drag) => (
+              <TemplateRow
+                index={ei}
+                name={exMap.get(e.exerciseId)?.name ?? 'Deleted exercise'}
+                notes={e.notes}
+                fallbackNote={exMap.get(e.exerciseId)?.notes}
+                handle={drag.handle}
+                dragging={drag.dragging}
+                onNotes={(notes) => setEntries((es) => es.map((x, i) => (i === ei ? { ...x, notes } : x)))}
+                onRemove={() => setEntries((es) => es.filter((_, i) => i !== ei))}
+              />
+            )}
+          </SortableList>
         </div>
+        {t.entries.length > 1 && (
+          <p className="label text-[10px] text-muted text-center mt-3">Hold an exercise to drag it</p>
+        )}
 
         <button className="btn-secondary w-full mt-4 h-14" onClick={() => setPicker(true)}>
           + Add exercise
@@ -160,7 +164,8 @@ export function TemplateEdit() {
         onPick={(picked) =>
           setEntries((es) => [
             ...es,
-            ...picked.map((ex) => ({ id: uid(), exerciseId: ex.id, sets: [emptySet(ex.type), emptySet(ex.type), emptySet(ex.type)] })),
+            // No planned sets: a workout started from the template prefills from your last session.
+            ...picked.map((ex) => ({ id: uid(), exerciseId: ex.id, sets: [] })),
           ])
         }
       />
@@ -177,5 +182,67 @@ export function TemplateEdit() {
         }}
       />
     </>
+  );
+}
+
+/** One exercise in a template: name, optional note, drag handle, remove. */
+function TemplateRow({
+  index,
+  name,
+  notes,
+  fallbackNote,
+  handle,
+  dragging,
+  onNotes,
+  onRemove,
+}: {
+  index: number;
+  name: string;
+  notes?: string;
+  fallbackNote?: string;
+  handle: DragHandleProps;
+  dragging: boolean;
+  onNotes: (v: string) => void;
+  onRemove: () => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const hasNote = !!notes?.trim();
+
+  return (
+    <div className={`border-b border-line/25 ${dragging ? 'bg-bg glass outline outline-2 outline-accent' : ''}`}>
+      <div {...handle} className="flex items-center gap-3 min-h-[56px] py-2">
+        <span className="font-mono text-[18px] leading-none text-muted px-1 cursor-grab" aria-hidden>
+          ⠿
+        </span>
+        <span className="num text-[12px]">{idx(index)}</span>
+        <div className="flex-1 min-w-0">
+          <div className="text-[18px] font-semibold leading-tight truncate">{name}</div>
+          {!editing && (notes || fallbackNote) && (
+            <div className={`font-serif italic text-[16px] truncate ${hasNote ? '' : 'text-muted'}`}>{notes || fallbackNote}</div>
+          )}
+        </div>
+        <button
+          className={`icon-btn h-10 w-10 ${hasNote ? '' : 'opacity-50'}`}
+          aria-label={hasNote ? 'Edit note' : 'Add note'}
+          onClick={() => setEditing((v) => !v)}
+        >
+          <IconNote size={18} />
+        </button>
+        <button className="icon-btn h-10 w-10" aria-label="Remove exercise" onClick={onRemove}>
+          <IconX size={18} />
+        </button>
+      </div>
+      {editing && (
+        <div className="pb-3 pl-11">
+          <AutoTextarea
+            value={notes ?? ''}
+            onChange={onNotes}
+            autoFocus
+            placeholder={fallbackNote || 'Note for this exercise (seat height, cues…)'}
+            className="font-serif italic text-[18px]"
+          />
+        </div>
+      )}
+    </div>
   );
 }

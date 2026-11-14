@@ -123,7 +123,7 @@ function TimerPanel() {
             {settings.timerPresets.map((p) => (
               <button
                 key={p}
-                className={`btn px-0 border ${s.durationMs === p * 1000 ? 'bg-accent text-accent-fg border-accent' : 'border-line'}`}
+                className={`btn px-0 border ${s.baseMs === p * 1000 ? 'bg-accent text-accent-fg border-accent' : 'border-line'}`}
                 onClick={() => timer.startCountdown(p)}
               >
                 {fmtDuration(p)}

@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { timer } from '../components/Timer/store';
 import { EntryCard } from '../components/EntryCard';
+import { reorder, SortableList } from '../components/SortableList';
 import { ExercisePicker } from '../components/ExercisePicker';
 import { AutoTextarea, TextField } from '../components/Fields';
 import { Page, PageHeader } from '../components/Layout';
@@ -99,10 +100,15 @@ export default function WorkoutEditor() {
           className="mb-5 font-serif italic text-[18px]"
         />
 
-        <div className="flex flex-col gap-4">
-          {workout.entries.map((e, ei) => (
+        <SortableList
+          items={workout.entries}
+          keyOf={(e) => e.id}
+          onReorder={(from, to) => setEntries((es) => reorder(es, from, to))}
+        >
+          {(e, ei, drag) => (
             <EntryCard
-              key={e.id}
+              handle={drag.handle}
+              dragging={drag.dragging}
               index={ei}
               exercise={exMap.get(e.exerciseId)}
               notes={e.notes}
@@ -124,8 +130,11 @@ export default function WorkoutEditor() {
               onMove={(dir) => setEntries((es) => moveItem(es, ei, dir))}
               onRemove={() => setEntries((es) => es.filter((_, i) => i !== ei))}
             />
-          ))}
-        </div>
+          )}
+        </SortableList>
+        {workout.entries.length > 1 && (
+          <p className="label text-[10px] text-muted text-center mt-3">Hold an exercise's title bar to drag it</p>
+        )}
 
         <button className="btn-primary w-full mt-4 h-14" onClick={() => setPicker(true)}>
           + Add exercise
@@ -164,6 +173,10 @@ export default function WorkoutEditor() {
         onClose={() => setFinishing(false)}
         workout={workout}
         templateName={template?.name}
+        templateChanged={
+          !!template &&
+          template.entries.map((e) => e.exerciseId).join() !== workout.entries.map((e) => e.exerciseId).join()
+        }
         onFinish={async ({ saveTemplate, templateName, updateTemplate }) => {
           if (updateTemplate && workout.templateId) await updateTemplateFromWorkout(workout.templateId, workout);
           if (saveTemplate) await saveWorkoutAsTemplate(workout, templateName);
@@ -192,12 +205,15 @@ function FinishSheet({
   onClose,
   workout,
   templateName,
+  templateChanged,
   onFinish,
 }: {
   open: boolean;
   onClose: () => void;
   workout: Workout;
   templateName?: string;
+  /** Exercises were added, removed or reordered compared with the template. */
+  templateChanged?: boolean;
   onFinish: (o: { saveTemplate: boolean; templateName: string; updateTemplate: boolean }) => Promise<void>;
 }) {
   const [saveTemplate, setSaveTemplate] = useState(false);
@@ -209,7 +225,7 @@ function FinishSheet({
     if (open) {
       setName(workout.name);
       setSaveTemplate(false);
-      setUpdateTemplate(false);
+      setUpdateTemplate(!!templateChanged);
     }
   }, [open, workout.name]);
 
@@ -234,7 +250,11 @@ function FinishSheet({
         {templateName && (
           <Toggle checked={updateTemplate} onChange={setUpdateTemplate}>
             Update template “{templateName}”
-            <span className="block text-[13px] text-muted font-normal">Saves today's exercises, sets and notes to it</span>
+            <span className="block text-[13px] text-muted font-normal">
+              {templateChanged
+                ? 'You changed the exercises or their order — saves the new order, sets and notes'
+                : "Saves today's exercise order, sets and notes to it"}
+            </span>
           </Toggle>
         )}
         <Toggle checked={saveTemplate} onChange={setSaveTemplate}>

@@ -1,6 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Consistency } from '../components/Consistency';
 import { Empty, idx, Page, PageHeader } from '../components/Layout';
 import { fmtSet } from '../components/SetTable';
 import { ConfirmSheet } from '../components/Sheet';
@@ -61,6 +62,7 @@ export default function History() {
       />
       <Page>
         {workouts && !workouts.length && <Empty title="Nothing logged yet.">Finished workouts will show up here.</Empty>}
+        {!!workouts?.length && <Consistency workouts={workouts} />}
         {groups.map((g) => (
           <section key={g.label} className="mt-6">
             <h2 className="label flex justify-between border-b border-line pb-1.5">
