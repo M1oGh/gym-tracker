@@ -115,7 +115,7 @@ export function TemplateEdit() {
         />
 
         <button
-          className="w-full flex items-center justify-between h-14 px-4 my-5 bg-accent text-accent-fg font-mono text-[13px] uppercase tracking-[0.06em] disabled:opacity-35"
+          className="cta w-full flex items-center justify-between h-14 px-4 my-5 bg-accent text-accent-fg font-mono text-[13px] uppercase tracking-[0.06em] disabled:opacity-35"
           disabled={!t.entries.length || !!active}
           onClick={async () => {
             await startWorkout(t);

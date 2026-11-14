@@ -135,7 +135,7 @@ export function WorkoutDetail() {
           ].map(([l, v], i) => (
             <div key={l} className={`px-3 py-2.5 ${i ? 'border-l border-line' : ''}`}>
               <div className="label text-[10px]">{l}</div>
-              <div className="font-display font-extrabold text-[30px] leading-none mt-1 whitespace-nowrap">{v}</div>
+              <div className="stat-num font-display font-extrabold text-[30px] leading-none mt-1 whitespace-nowrap">{v}</div>
             </div>
           ))}
         </div>

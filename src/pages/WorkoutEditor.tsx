@@ -287,7 +287,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="border border-line px-3 py-2.5">
       <div className="label text-[10px]">{label}</div>
-      <div className="font-display font-extrabold text-[34px] leading-none mt-1 tabular-nums">{value}</div>
+      <div className="stat-num font-display font-extrabold text-[34px] leading-none mt-1 tabular-nums">{value}</div>
     </div>
   );
 }

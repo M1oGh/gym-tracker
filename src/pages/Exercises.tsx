@@ -174,7 +174,7 @@ export function ExerciseDetail() {
                 {records.map((r, i) => (
                   <div key={r.label} className={`px-3 py-2.5 min-w-0 ${i ? 'border-l border-line' : ''}`}>
                     <div className="label text-[10px] truncate">Best {r.label}</div>
-                    <div className="font-display font-extrabold text-[30px] leading-none mt-1 truncate">{r.value}</div>
+                    <div className="stat-num font-display font-extrabold text-[30px] leading-none mt-1 truncate">{r.value}</div>
                   </div>
                 ))}
               </div>

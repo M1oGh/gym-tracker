@@ -1,4 +1,4 @@
-export type ThemePref = 'system' | 'light' | 'slate' | 'dark';
+export type ThemePref = 'system' | 'light' | 'slate' | 'dark' | 'night';
 
 const mq = () => window.matchMedia('(prefers-color-scheme: dark)');
 
@@ -14,7 +14,7 @@ export function getThemePref(): ThemePref {
 
 export function applyTheme(pref: ThemePref = getThemePref()) {
   const dark = pref === 'dark' || (pref === 'system' && mq().matches);
-  document.documentElement.dataset.theme = pref === 'slate' ? 'slate' : dark ? 'dark' : 'light';
+  document.documentElement.dataset.theme = pref === 'slate' || pref === 'night' ? pref : dark ? 'dark' : 'light';
 }
 
 export function setThemePref(pref: ThemePref) {

@@ -39,7 +39,7 @@ export default function Home() {
         {!active && <BackupReminder />}
 
         {active ? (
-          <Link to="/workout" className="flex items-stretch bg-accent text-accent-fg active:translate-y-px transition-transform">
+          <Link to="/workout" className="cta flex items-stretch bg-accent text-accent-fg active:translate-y-px transition-transform">
             <div className="flex-1 min-w-0 px-4 py-3.5">
               <div className="label text-accent-fg animate-blink">◆ In progress</div>
               <div className="text-[20px] font-semibold truncate mt-0.5">{active.name}</div>
@@ -49,7 +49,7 @@ export default function Home() {
           </Link>
         ) : (
           <button
-            className="w-full flex items-center justify-between h-16 px-4 bg-accent text-accent-fg font-mono text-[14px] uppercase tracking-[0.06em] active:translate-y-px transition-transform"
+            className="cta w-full flex items-center justify-between h-16 px-4 bg-accent text-accent-fg font-mono text-[14px] uppercase tracking-[0.06em] active:translate-y-px transition-transform"
             onClick={() => start()}
           >
             Start empty workout <span className="text-[20px]">→</span>

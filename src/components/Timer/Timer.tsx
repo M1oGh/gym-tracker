@@ -87,7 +87,11 @@ function TimerPanel() {
         {fmtDuration(shown)}
       </div>
       <div className="mt-4 h-2 border border-line">
-        <div className="h-full bg-accent transition-[width] duration-200 ease-linear" style={{ width: `${progress * 100}%` }} />
+        {/* Inline fill (not .bg-accent) so themes that outline accent elements still show progress. */}
+        <div
+          className="h-full transition-[width] duration-200 ease-linear"
+          style={{ width: `${progress * 100}%`, background: 'rgb(var(--accent))' }}
+        />
       </div>
 
       <div className={`grid gap-2 mt-4 ${isCd ? 'grid-cols-[1fr_2fr_1fr]' : 'grid-cols-[1fr_2fr]'}`}>

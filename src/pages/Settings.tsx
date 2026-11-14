@@ -4,18 +4,17 @@ import { ConfirmSheet } from '../components/Sheet';
 import { clearAll, exportData, importData } from '../lib/backup';
 import { fmtDuration, parseDuration, parseNum } from '../lib/format';
 import { updateSettings, useSettings } from '../settings';
-import { getThemePref, setThemePref, type ThemePref } from '../theme';
 import { Toggle } from './WorkoutEditor';
 import { IconX } from '../components/Icons';
 import { lastBackupText } from '../components/BackupReminder';
 import { BackgroundSettings } from '../components/BackgroundSettings';
+import { ThemePicker } from '../components/ThemePicker';
 import { removeBackground } from '../background';
 
 const WEIGHT_STEPS = [0.25, 0.5, 1, 1.25, 2.5, 5];
 
 export default function Settings() {
   const settings = useSettings();
-  const [theme, setTheme] = useState<ThemePref>(getThemePref());
   const [preset, setPreset] = useState('');
   const [step, setStep] = useState('');
   const [msg, setMsg] = useState<string | null>(null);
@@ -36,21 +35,7 @@ export default function Settings() {
       <Page>
 
         <Section title="Appearance">
-          <div className="seg mt-3">
-            {(['light', 'slate', 'dark', 'system'] as const).map((t) => (
-              <button
-                key={t}
-                aria-pressed={theme === t}
-                onClick={() => {
-                  setTheme(t);
-                  setThemePref(t);
-                }}
-                className="capitalize"
-              >
-                {t}
-              </button>
-            ))}
-          </div>
+          <ThemePicker />
         </Section>
 
         <BackgroundSettings />

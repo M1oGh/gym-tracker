@@ -121,7 +121,7 @@ export function Consistency({ workouts }: { workouts: Workout[] }) {
                       aria-label={`${fmtDate(d)}: ${count ? `${count} workout${count > 1 ? 's' : ''}` : 'rest'}`}
                       onClick={() => setPicked(picked === d ? null : d)}
                       className={`aspect-square transition-colors ${
-                        count ? 'bg-accent' : future ? '' : 'border border-line/20'
+                        count ? 'bg-accent' : future ? '' : 'heat-rest border border-line/20'
                       } ${k === today ? 'outline outline-2 outline-offset-1 outline-line' : ''} ${
                         picked === d ? 'ring-2 ring-offset-1 ring-line ring-offset-bg' : ''
                       }`}

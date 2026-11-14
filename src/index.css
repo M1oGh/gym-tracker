@@ -230,6 +230,114 @@ input[type='number']::-webkit-outer-spin-button {
 }
 
 /*
+ * After Hours — the gym after the office, late. Near-black blue night, cool
+ * off-white type; highlighted things get a thin white outline instead of a
+ * coloured fill. Swaps the poster fonts for a sleek grotesk, drops the thick
+ * frame and uses hairlines.
+ * Only looks change here; nothing functional.
+ */
+[data-theme='night'] {
+  --bg: 10 12 17;
+  --frame: 10 12 17;
+  --surface: 10 12 17;
+  --surface2: 24 28 38;
+  --line: 86 94 114;
+  --fg: 228 231 238;
+  --muted: 136 143 160;
+  --accent: 228 231 238;
+  --accent-fg: 228 231 238;
+  --success: 228 231 238;
+  --danger: 228 231 238;
+  --frame-w: 0px;
+  color-scheme: dark;
+}
+/* Faint city-sky glow at the top of the screen. */
+[data-theme='night'] body {
+  background:
+    radial-gradient(130% 42% at 50% -6%, rgb(60 84 150 / 0.32), transparent 70%) fixed,
+    rgb(var(--bg));
+}
+/* Bars float over the glow: the header is clear at the top and frosts once content scrolls under it. */
+[data-theme='night'] header {
+  background-color: transparent;
+}
+[data-theme='night'] header.glass,
+[data-theme='night'] nav {
+  background-color: rgb(var(--bg) / 0.72);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+}
+[data-theme='night'] .swipe-row,
+[data-theme='night'] .bg-surface {
+  background-color: transparent;
+}
+/* Headlines: sleek grotesk, normal case, tight tracking. */
+[data-theme='night'] .font-display {
+  font-family: 'Space Grotesk', 'Inter Tight', system-ui, sans-serif;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: -0.045em;
+  line-height: 1;
+}
+/* The italic serif accents become quiet, plain text. */
+[data-theme='night'] .font-serif {
+  font-family: 'Inter Tight', system-ui, sans-serif;
+  font-style: normal;
+  letter-spacing: -0.01em;
+}
+/*
+ * Highlighted elements (primary buttons, selected options, finished sets, trained
+ * days…) keep the dark background and get a thin white outline instead of a fill.
+ */
+[data-theme='night'] .bg-accent,
+[data-theme='night'] .btn-primary,
+[data-theme='night'] .seg > button[aria-pressed='true'],
+[data-theme='night'] .chip[aria-pressed='true'] {
+  background-color: transparent;
+  box-shadow: inset 0 0 0 1px rgb(var(--accent));
+  color: rgb(var(--fg));
+}
+/* Pressed state: a quiet grey flash instead of solid white. */
+[data-theme='night'] [class*='active:bg-accent']:active,
+[data-theme='night'] .btn-primary:active {
+  background-color: rgb(var(--surface2));
+  color: rgb(var(--fg));
+}
+/* The floating timer needs a backing so it stays readable over the list. */
+[data-theme='night'] [aria-label='Timer'].bg-accent {
+  background-color: rgb(var(--bg) / 0.85);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+/* Toggle switch: when on, a white track with a dark knob. */
+[data-theme='night'] .peer:checked ~ span.relative {
+  background-color: rgb(var(--fg));
+}
+[data-theme='night'] .peer:checked ~ span.relative::after {
+  background-color: rgb(var(--bg));
+}
+[data-theme='night'] ::selection {
+  background: rgb(var(--fg) / 0.25);
+  color: rgb(var(--fg));
+}
+/* Active tab: a thin line on top instead of a filled block. */
+[data-theme='night'] nav a.bg-accent {
+  background-color: transparent;
+  color: rgb(var(--accent));
+  box-shadow: inset 0 2px 0 rgb(var(--accent));
+}
+/* The grotesk is wider than the condensed poster font: smaller stat numbers so they fit their tiles. */
+[data-theme='night'] .stat-num {
+  font-size: 22px;
+  letter-spacing: -0.03em;
+}
+/* Rest days as quiet filled squares rather than near-invisible outlines. */
+[data-theme='night'] .heat-rest {
+  background-color: rgb(var(--surface2));
+  border-color: transparent;
+}
+
+/*
  * Custom background image (Settings → Background). These rules only apply while
  * an image is set, so the default look is untouched. Content areas turn
  * transparent so the image shows through; bars and sheets get frosted glass.

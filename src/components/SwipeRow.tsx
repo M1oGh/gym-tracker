@@ -32,7 +32,7 @@ export function SwipeRow({
       )}
       <div
         style={{ transform: `translateX(${dx}px)`, transition: start.current ? 'none' : 'transform 220ms ease' }}
-        className="relative bg-bg"
+        className="swipe-row relative bg-bg"
         onClickCapture={(e) => {
           // A tap while open closes the row instead of activating it.
           if (dx !== 0) {
