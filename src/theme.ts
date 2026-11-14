@@ -1,10 +1,12 @@
-export type ThemePref = 'system' | 'light' | 'sepia' | 'dark';
+export type ThemePref = 'system' | 'light' | 'slate' | 'dark';
 
 const mq = () => window.matchMedia('(prefers-color-scheme: dark)');
 
 export function getThemePref(): ThemePref {
   try {
-    return (localStorage.getItem('theme') as ThemePref) || 'light';
+    const t = localStorage.getItem('theme');
+    // 'sepia' was replaced by 'slate'.
+    return ((t === 'sepia' ? 'slate' : t) as ThemePref) || 'light';
   } catch {
     return 'light';
   }
@@ -12,7 +14,7 @@ export function getThemePref(): ThemePref {
 
 export function applyTheme(pref: ThemePref = getThemePref()) {
   const dark = pref === 'dark' || (pref === 'system' && mq().matches);
-  document.documentElement.dataset.theme = pref === 'sepia' ? 'sepia' : dark ? 'dark' : 'light';
+  document.documentElement.dataset.theme = pref === 'slate' ? 'slate' : dark ? 'dark' : 'light';
 }
 
 export function setThemePref(pref: ThemePref) {

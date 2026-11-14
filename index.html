@@ -16,8 +16,9 @@
       (function () {
         try {
           var t = localStorage.getItem('theme') || 'light';
+          if (t === 'sepia') t = 'slate';
           var dark = t === 'dark' || (t === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
-          document.documentElement.dataset.theme = t === 'sepia' ? 'sepia' : dark ? 'dark' : 'light';
+          document.documentElement.dataset.theme = t === 'slate' ? 'slate' : dark ? 'dark' : 'light';
           // Colours derived from a custom background image (see src/background.ts).
           var bg = JSON.parse(localStorage.getItem('bgTokens') || 'null');
           if (bg && bg.theme === document.documentElement.dataset.theme) {

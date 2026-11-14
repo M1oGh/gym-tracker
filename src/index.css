@@ -22,19 +22,19 @@
   color-scheme: light;
 }
 
-/* Sepia: warm paper tones, softer contrast and less blue light — easy on the eyes. */
-[data-theme='sepia'] {
-  --bg: 242 233 216;
-  --frame: 156 72 46;
-  --surface: 242 233 216;
-  --surface2: 231 218 194;
-  --line: 104 66 48;
-  --fg: 104 66 48;
-  --muted: 146 110 88;
-  --accent: 156 72 46;
-  --accent-fg: 250 243 230;
-  --success: 156 72 46;
-  --danger: 156 72 46;
+/* Slate: cool, muted blue-greys — softer glare than white, easy on the eyes. */
+[data-theme='slate'] {
+  --bg: 211 222 224;
+  --frame: 84 92 118;
+  --surface: 211 222 224;
+  --surface2: 229 234 234;
+  --line: 84 92 118;
+  --fg: 66 64 79;
+  --muted: 98 110 132;
+  --accent: 84 92 118;
+  --accent-fg: 243 243 243;
+  --success: 84 92 118;
+  --danger: 84 92 118;
   color-scheme: light;
 }
 
