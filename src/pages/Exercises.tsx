@@ -8,6 +8,7 @@ import { ProgressChart, type Point } from '../components/ProgressChart';
 import { fmtSet } from '../components/SetTable';
 import { ConfirmSheet, Sheet } from '../components/Sheet';
 import { createExercise, historyFor, lastEntries } from '../db/queries';
+import { categoryOf, groupByCategory } from '../lib/categories';
 import { db, isWeightSet, type AnySet } from '../db/schema';
 import { fmtDate, fmtDuration, fmtNum } from '../lib/format';
 import { bestE1rm, pace, setsVolume, topWeight, totalDistance, totalDuration, totalReps } from '../lib/stats';
@@ -43,31 +44,37 @@ export default function Exercises() {
             — or add them while logging a workout.
           </Empty>
         )}
-        {!!list.length && (
-          <ul className="border-t border-line">
-            {list.map((e, i) => {
-              const l = last?.get(e.id);
-              return (
-                <li key={e.id}>
-                  <Link to={`/exercises/${e.id}`} className="flex items-center gap-3 py-3 border-b border-line/25 active:bg-surface2">
-                    <span className="num text-[12px] w-5">{idx(i)}</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-[18px] font-semibold leading-tight truncate">{e.name}</div>
-                      <div className="num text-[12px] text-muted truncate mt-0.5">{l ? `Last ${fmtSet(bestSet(l.sets))}` : 'Not logged yet'}</div>
-                    </div>
-                    <TypeBadge type={e.type} />
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        )}
+        {groupByCategory(list).map((g) => (
+          <section key={g.category} className="mt-5">
+            <h2 className="label flex justify-between border-b border-line pb-1.5">
+              <span>{g.category}</span>
+              <span className="text-muted">{String(g.items.length).padStart(2, '0')}</span>
+            </h2>
+            <ul>
+              {g.items.map((e, i) => {
+                const l = last?.get(e.id);
+                return (
+                  <li key={e.id}>
+                    <Link to={`/exercises/${e.id}`} className="flex items-center gap-3 py-3 border-b border-line/25 active:bg-surface2">
+                      <span className="num text-[12px] w-5">{idx(i)}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[18px] font-semibold leading-tight truncate">{e.name}</div>
+                        <div className="num text-[12px] text-muted truncate mt-0.5">{l ? `Last ${fmtSet(bestSet(l.sets))}` : 'Not logged yet'}</div>
+                      </div>
+                      <TypeBadge type={e.type} />
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        ))}
       </Page>
       <Sheet open={creating} onClose={() => setCreating(false)} title="New exercise">
         <ExerciseForm
           onCancel={() => setCreating(false)}
           onSave={async (v) => {
-            await createExercise(v.name, v.type, v.notes);
+            await createExercise(v.name, v.type, v.notes, v.category);
             setCreating(false);
           }}
         />
@@ -156,7 +163,7 @@ export function ExerciseDetail() {
           </button>
         }
         meta={[
-          ex.type === 'weight' ? 'Weight & reps' : 'Time & distance',
+          `${categoryOf(ex)} · ${ex.type === 'weight' ? 'Weight & reps' : 'Time & distance'}`,
           <span className="num">
             {history.length} {history.length === 1 ? 'session' : 'sessions'}
           </span>,
@@ -249,7 +256,7 @@ export function ExerciseDetail() {
           initial={ex}
           onCancel={() => setEditing(false)}
           onSave={async (v) => {
-            await db.exercises.update(ex.id, { name: v.name, notes: v.notes.trim() || undefined });
+            await db.exercises.update(ex.id, { name: v.name, category: v.category, notes: v.notes.trim() || undefined });
             setEditing(false);
           }}
         />

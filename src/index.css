@@ -176,6 +176,17 @@ input[type='number']::-webkit-outer-spin-button {
   padding-bottom: var(--frame-bottom);
 }
 
+/* Swipe rows only need to clip sideways (for the delete button); vertically, glows may show. */
+.swipe-clip {
+  overflow: hidden;
+}
+@supports (overflow: clip) {
+  .swipe-clip {
+    overflow-x: clip;
+    overflow-y: visible;
+  }
+}
+
 @keyframes sheet-in {
   from {
     transform: translateY(100%);
@@ -296,6 +307,20 @@ input[type='number']::-webkit-outer-spin-button {
   background-color: transparent;
   box-shadow: inset 0 0 0 1px rgb(var(--accent));
   color: rgb(var(--fg));
+}
+/* A finished set glows softly: lit check button, faint wash and a bright edge on the row. */
+[data-theme='night'] .set-check {
+  transition-property: color, background-color, border-color, box-shadow;
+  transition-duration: 300ms;
+}
+[data-theme='night'] .set-check.bg-accent {
+  box-shadow:
+    inset 0 0 0 1px rgb(var(--accent)),
+    0 0 12px 1px rgb(var(--accent) / 0.4);
+}
+[data-theme='night'] .set-row-done {
+  background-image: linear-gradient(90deg, rgb(var(--fg) / 0.09), rgb(var(--fg) / 0.02) 75%);
+  box-shadow: inset 2px 0 0 rgb(var(--fg) / 0.75);
 }
 /* Pressed state: a quiet grey flash instead of solid white. */
 [data-theme='night'] [class*='active:bg-accent']:active,

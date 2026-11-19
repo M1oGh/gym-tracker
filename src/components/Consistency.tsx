@@ -17,6 +17,21 @@ const dayKey = (t: number) => {
   return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 };
 
+/** One month label per column where a month starts (plus the first column), skipping any that would overlap. */
+function monthLabels(weeks: number[][]) {
+  const labels: (number | null)[] = weeks.map((wk, w) => (w === 0 ? wk[0] : wk.find((d) => new Date(d).getDate() === 1) ?? null));
+  let last = -Infinity;
+  return labels.map((l, w) => {
+    if (l === null) return null;
+    // A month label needs ~3 columns of room; the later (real month start) wins over the first column.
+    const next = labels.findIndex((x, i) => i > w && x !== null);
+    if (w === 0 && next !== -1 && next < 3) return null;
+    if (w - last < 3) return null;
+    last = w;
+    return l;
+  });
+}
+
 /**
  * Training calendar for the last few months (one column per week, Mon–Sun)
  * plus streak numbers. Tap a day to see what was trained.
@@ -33,7 +48,11 @@ export function Consistency({ workouts }: { workouts: Workout[] }) {
 
     const now = Date.now();
     const thisWeek = weekStart(now);
-    const first = thisWeek - (WEEKS - 1) * 7 * DAY;
+    // Step back by calendar days, not milliseconds: across a daylight-saving change
+    // a fixed ms offset lands at 23:00/01:00 and made today look like a future day.
+    const firstDate = new Date(thisWeek);
+    firstDate.setDate(firstDate.getDate() - (WEEKS - 1) * 7);
+    const first = firstDate.getTime();
     // DST-safe day stepping: build dates with setDate instead of adding ms.
     const weeks = Array.from({ length: WEEKS }, (_, w) =>
       Array.from({ length: 7 }, (_, d) => {
@@ -89,15 +108,11 @@ export function Consistency({ workouts }: { workouts: Workout[] }) {
       <div className="mt-4">
         {/* Month labels above the first week of each month. */}
         <div className="grid gap-[3px] ml-5" style={{ gridTemplateColumns: `repeat(${WEEKS}, minmax(0, 1fr))` }}>
-          {data.weeks.map((wk, w) => {
-            const firstOfMonth = wk.find((d) => new Date(d).getDate() === 1);
-            const label = w === 0 ? wk[0] : firstOfMonth;
-            return (
-              <div key={w} className="label text-[9px] text-muted whitespace-nowrap overflow-visible h-3.5">
-                {label ? fmtDate(label, { month: 'short' }) : ''}
-              </div>
-            );
-          })}
+          {monthLabels(data.weeks).map((label, w) => (
+            <div key={w} className="label text-[9px] text-muted whitespace-nowrap overflow-visible h-3.5">
+              {label ? fmtDate(label, { month: 'short' }) : ''}
+            </div>
+          ))}
         </div>
         <div className="flex gap-[3px] mt-1">
           <div className="grid grid-rows-7 gap-[3px] w-5 shrink-0 label text-[9px] text-muted">
@@ -113,17 +128,25 @@ export function Consistency({ workouts }: { workouts: Workout[] }) {
                 {wk.map((d) => {
                   const k = dayKey(d);
                   const count = data.byDay.get(k)?.length ?? 0;
-                  const future = d > todayStart;
+                  const future = new Date(d).setHours(0, 0, 0, 0) > todayStart;
+                  const isPicked = picked === d;
                   return (
                     <button
                       key={d}
                       disabled={future}
                       aria-label={`${fmtDate(d)}: ${count ? `${count} workout${count > 1 ? 's' : ''}` : 'rest'}`}
-                      onClick={() => setPicked(picked === d ? null : d)}
+                      aria-pressed={isPicked}
+                      onClick={() => setPicked(isPicked ? null : d)}
                       className={`aspect-square transition-colors ${
                         count ? 'bg-accent' : future ? '' : 'heat-rest border border-line/20'
-                      } ${k === today ? 'outline outline-2 outline-offset-1 outline-line' : ''} ${
-                        picked === d ? 'ring-2 ring-offset-1 ring-line ring-offset-bg' : ''
+                      } ${
+                        // Selected day: a thick outline drawn above the neighbouring squares (an outline
+                        // isn't affected by themes that restyle box-shadows, and z-10 keeps it on top).
+                        isPicked
+                          ? 'relative z-10 outline outline-2 outline-offset-2 outline-fg'
+                          : k === today
+                            ? 'relative z-[5] outline outline-1 outline-offset-1 outline-line'
+                            : ''
                       }`}
                     />
                   );

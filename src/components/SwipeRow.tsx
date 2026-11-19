@@ -17,7 +17,7 @@ export function SwipeRow({
   const OPEN = -width;
 
   return (
-    <div className="relative overflow-hidden">
+    <div className="swipe-clip relative">
       {dx < 0 && (
         <button
           className="absolute inset-y-0 right-0 bg-accent text-accent-fg font-mono text-[12px] uppercase tracking-wide"

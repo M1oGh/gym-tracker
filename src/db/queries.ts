@@ -57,8 +57,8 @@ export async function historyFor(exerciseId: string) {
   return out.reverse();
 }
 
-export async function createExercise(name: string, type: ExerciseType, notes?: string): Promise<Exercise> {
-  const ex: Exercise = { id: uid(), name: name.trim(), type, notes: notes?.trim() || undefined, createdAt: Date.now() };
+export async function createExercise(name: string, type: ExerciseType, notes?: string, category?: string): Promise<Exercise> {
+  const ex: Exercise = { id: uid(), name: name.trim(), type, category, notes: notes?.trim() || undefined, createdAt: Date.now() };
   await db.exercises.add(ex);
   return ex;
 }

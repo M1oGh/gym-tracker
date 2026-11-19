@@ -58,7 +58,7 @@ export function SetTable({ type, sets, mode, previous, onChange, onRemove, onAdd
         <SwipeRow key={i} onDelete={() => onRemove(i)}>
           <div
             className={`grid ${cols} gap-1.5 items-center px-2.5 py-1.5 border-t border-line/15 transition-colors ${
-              s.done ? 'bg-surface2' : ''
+              s.done ? 'set-row-done bg-surface2' : ''
             }`}
           >
             <div className="num text-[13px] font-medium">{String(i + 1).padStart(2, '0')}</div>
@@ -86,7 +86,7 @@ export function SetTable({ type, sets, mode, previous, onChange, onRemove, onAdd
               <button
                 onClick={() => onToggleDone?.(i)}
                 aria-label={s.done ? 'Mark set not done' : 'Mark set done'}
-                className={`h-10 w-10 grid place-items-center border transition-colors active:scale-95 ${
+                className={`set-check h-10 w-10 grid place-items-center border transition-colors active:scale-95 ${
                   s.done ? 'bg-accent border-accent text-accent-fg' : 'border-line/50 text-line/40'
                 }`}
               >

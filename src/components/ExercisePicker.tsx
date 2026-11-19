@@ -2,6 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useMemo, useState } from 'react';
 import { createExercise } from '../db/queries';
 import { db, type Exercise, type ExerciseType } from '../db/schema';
+import { CATEGORIES, categoryOf, groupByCategory, type Category } from '../lib/categories';
 import { AutoTextarea } from './Fields';
 import { IconCheck } from './Icons';
 import { Sheet } from './Sheet';
@@ -57,7 +58,7 @@ export function ExercisePicker({
           initialName={q}
           onCancel={() => setCreating(false)}
           onSave={async (v) => {
-            const ex = await createExercise(v.name, v.type, v.notes);
+            const ex = await createExercise(v.name, v.type, v.notes, v.category);
             setSelected((s) => [...s, ex.id]);
             setQ('');
             setCreating(false);
@@ -69,31 +70,41 @@ export function ExercisePicker({
           <button className="btn-secondary justify-start mt-2" onClick={() => setCreating(true)}>
             + Create {q.trim() ? `“${q.trim()}”` : 'new exercise'}
           </button>
-          <ul className="mt-3 flex-1 border-t border-line">
-            {list.map((e) => {
-              const on = selected.includes(e.id);
-              return (
-                <li key={e.id}>
-                  <button className="w-full flex items-center gap-3 py-3 text-left border-b border-line/25" onClick={() => toggle(e.id)}>
-                    <span
-                      className={`h-6 w-6 grid place-items-center border transition-colors ${
-                        on ? 'bg-accent border-accent text-accent-fg' : 'border-line'
-                      }`}
-                    >
-                      {on && <IconCheck size={14} />}
-                    </span>
-                    <span className="flex-1 text-[17px] font-medium">{e.name}</span>
-                    <TypeBadge type={e.type} />
-                  </button>
-                </li>
-              );
-            })}
+          <div className="mt-3 flex-1">
+            {groupByCategory(list).map((g) => (
+              <section key={g.category} className="mb-4">
+                <h3 className="label flex justify-between border-b border-line pb-1.5">
+                  <span>{g.category}</span>
+                  <span className="text-muted">{String(g.items.length).padStart(2, '0')}</span>
+                </h3>
+                <ul>
+                  {g.items.map((e) => {
+                    const on = selected.includes(e.id);
+                    return (
+                      <li key={e.id}>
+                        <button className="w-full flex items-center gap-3 py-3 text-left border-b border-line/25" onClick={() => toggle(e.id)}>
+                          <span
+                            className={`h-6 w-6 grid place-items-center border transition-colors ${
+                              on ? 'bg-accent border-accent text-accent-fg' : 'border-line'
+                            }`}
+                          >
+                            {on && <IconCheck size={14} />}
+                          </span>
+                          <span className="flex-1 text-[17px] font-medium">{e.name}</span>
+                          <TypeBadge type={e.type} />
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            ))}
             {!list.length && (
-              <li className="py-10 font-serif italic text-[22px]">
+              <p className="py-10 font-serif italic text-[22px]">
                 {exercises.length ? 'No matches' : 'No exercises yet — create your first one.'}
-              </li>
+              </p>
             )}
-          </ul>
+          </div>
           <div className="sticky bottom-0 pt-3 bg-bg glass">
             <button className="btn-primary w-full" disabled={!selected.length} onClick={done}>
               Add {selected.length || ''} {selected.length === 1 ? 'exercise' : 'exercises'}
@@ -113,19 +124,27 @@ export function ExerciseForm({
 }: {
   initialName?: string;
   initial?: Exercise;
-  onSave: (v: { name: string; type: ExerciseType; notes: string }) => void | Promise<void>;
+  onSave: (v: { name: string; type: ExerciseType; notes: string; category: Category }) => void | Promise<void>;
   onCancel: () => void;
 }) {
   const [name, setName] = useState(initial?.name ?? initialName.trim());
   const [type, setType] = useState<ExerciseType>(initial?.type ?? 'weight');
   const [notes, setNotes] = useState(initial?.notes ?? '');
+  const [category, setCategory] = useState<Category>(initial ? categoryOf(initial) : 'General');
+  const [categoryTouched, setCategoryTouched] = useState(!!initial);
+
+  // New time-based exercises are usually cardio: suggest it until a category is picked by hand.
+  const pickType = (t: ExerciseType) => {
+    setType(t);
+    if (!categoryTouched) setCategory(t === 'time' ? 'Cardio' : 'General');
+  };
 
   return (
     <form
       className="flex flex-col gap-4"
       onSubmit={(e) => {
         e.preventDefault();
-        if (name.trim()) void onSave({ name: name.trim(), type, notes });
+        if (name.trim()) void onSave({ name: name.trim(), type, notes, category });
       }}
     >
       <div>
@@ -135,14 +154,33 @@ export function ExerciseForm({
       <div>
         <div className="label mb-1.5">Type</div>
         <div className={`seg ${initial ? 'opacity-60 pointer-events-none' : ''}`}>
-          <button type="button" aria-pressed={type === 'weight'} onClick={() => setType('weight')}>
+          <button type="button" aria-pressed={type === 'weight'} onClick={() => pickType('weight')}>
             Weight & reps
           </button>
-          <button type="button" aria-pressed={type === 'time'} onClick={() => setType('time')}>
+          <button type="button" aria-pressed={type === 'time'} onClick={() => pickType('time')}>
             Time & distance
           </button>
         </div>
         {initial && <p className="text-[13px] text-muted mt-1.5">Type can't be changed after the exercise is created.</p>}
+      </div>
+      <div>
+        <div className="label mb-1.5">Category</div>
+        <div className="flex flex-wrap gap-2">
+          {CATEGORIES.map((c) => (
+            <button
+              key={c}
+              type="button"
+              className="chip"
+              aria-pressed={category === c}
+              onClick={() => {
+                setCategory(c);
+                setCategoryTouched(true);
+              }}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
       </div>
       <div>
         <div className="label mb-1.5">Notes</div>

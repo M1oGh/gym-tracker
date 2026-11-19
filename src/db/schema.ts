@@ -6,6 +6,8 @@ export interface Exercise {
   id: string;
   name: string;
   type: ExerciseType;
+  /** Muscle group (see lib/categories); missing on older exercises = "General". */
+  category?: string;
   notes?: string;
   createdAt: number;
   archived?: boolean;
